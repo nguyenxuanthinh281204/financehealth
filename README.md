@@ -1,0 +1,87 @@
+# FinanceHealth
+
+Web app cá nhân (dùng được như app trên điện thoại) để quản lý **chi tiêu** và **sức khỏe** mỗi ngày.
+
+| Tính năng | Mô tả |
+|---|---|
+| 💸 Chi tiêu | Nhập tay hoặc **chụp hóa đơn**, AI đọc cửa hàng, ngày, tổng tiền, từng món (hỗ trợ bill tiếng Việt). Lọc theo danh mục, xem theo tháng. |
+| ⚖️ Cơ thể & macro | Nhập giới tính, ngày sinh, chiều cao, cân nặng, mức tập, mục tiêu. Tính BMI (ngưỡng châu Á), BMR (Mifflin-St Jeor), TDEE, calo và protein/carb/fat mỗi ngày. Lịch sử cân nặng có biểu đồ. |
+| 🥗 Thực đơn 3 bữa | Chọn các món sẽ ăn (ví dụ ngày mai), hệ thống tự xếp vào sáng/trưa/tối và **tính số gram từng món** để tổng macro sát mục tiêu. Có thể ghim món vào bữa, sửa gram, thêm món riêng. |
+| 📸 Khoảnh khắc | Như Locket: chụp ảnh hoặc quay **video tối đa 5 giây** ngay trong app, xem lại theo ngày. |
+| 📊 Tổng kết tháng | Tổng chi, so với tháng trước, chi theo danh mục và theo ngày, nơi chi nhiều nhất, cân nặng đầu/cuối tháng, số ngày có thực đơn, khoảnh khắc. |
+
+## Công nghệ
+
+- **Frontend**: React 19 + TypeScript + Vite, dạng **PWA** (cài lên màn hình chính iOS/Android), React Query, Recharts.
+- **Backend**: Spring Boot 3.5 (Java 21), Spring Security + JWT, JPA, Flyway.
+- **Database**: PostgreSQL 16.
+- **Lưu file**: Amazon S3 (hoặc ổ đĩa local khi dev).
+- **Quét hóa đơn**: Claude vision qua Anthropic Java SDK, trả về JSON có cấu trúc.
+
+```
+backend/    Spring Boot API
+frontend/   React PWA
+deploy/     docker-compose production, Caddy (HTTPS), .env mẫu
+docs/       DEPLOY.md: hướng dẫn deploy AWS + tên miền
+```
+
+## Chạy local
+
+Cần: Java 21, Maven, Node 22, Docker (hoặc PostgreSQL cài sẵn).
+
+```bash
+# 1. Database
+docker compose up -d
+
+# 2. Backend: http://localhost:8080
+cd backend
+mvn spring-boot:run
+# Bật quét hóa đơn (không bắt buộc): ANTHROPIC_API_KEY=sk-ant-... mvn spring-boot:run
+
+# 3. Frontend: http://localhost:5173
+cd frontend
+npm install
+npm run dev
+```
+
+Mở http://localhost:5173, đăng ký tài khoản và dùng. Ở local, ảnh/video lưu trong `backend/data/uploads`.
+Muốn thử trên điện thoại cùng mạng Wi-Fi: `npm run dev -- --host` rồi mở IP máy tính (camera cần HTTPS nên chỉ chụp được khi đã deploy, ở local hãy dùng nút chọn ảnh có sẵn).
+
+## Test
+
+```bash
+cd backend && mvn verify      # unit test + integration test trên PostgreSQL (database financehealth_test)
+cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
+```
+
+## Biến môi trường backend
+
+| Biến | Mặc định | Ý nghĩa |
+|---|---|---|
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | localhost/financehealth | Kết nối PostgreSQL |
+| `JWT_SECRET` | chuỗi dev | Khóa ký token, **bắt buộc đổi** khi chạy thật (≥ 32 ký tự) |
+| `CORS_ORIGINS` | `http://localhost:5173` | Domain frontend được gọi API |
+| `STORAGE_TYPE` | `local` | `local` hoặc `s3` |
+| `S3_BUCKET`, `AWS_REGION` | | Bucket lưu media khi dùng S3 |
+| `PUBLIC_BASE_URL` | `http://localhost:8080` | URL công khai của API (ký link file khi lưu local) |
+| `ANTHROPIC_API_KEY` | trống | Bật quét hóa đơn bằng AI |
+| `RECEIPT_MODEL` | `claude-opus-5-5` | Model dùng để đọc hóa đơn |
+
+## API chính
+
+| Method | Đường dẫn | |
+|---|---|---|
+| POST | `/api/auth/register`, `/api/auth/login` | Đăng ký, đăng nhập (trả JWT) |
+| GET/PUT | `/api/body/profile` | Hồ sơ cơ thể + macro tính sẵn |
+| GET/POST/DELETE | `/api/body/weights` | Nhật ký cân nặng |
+| GET/POST/DELETE | `/api/foods` | Danh sách món (món hệ thống + món riêng) |
+| POST | `/api/meal-plans/generate` | Tạo thực đơn 3 bữa cho một ngày |
+| GET/DELETE | `/api/meal-plans/{date}` · PATCH `/api/meal-plans/items/{id}` | Xem, xóa, sửa gram |
+| GET/POST/PUT/DELETE | `/api/expenses` | Chi tiêu |
+| POST | `/api/expenses/scan-receipt` | Upload ảnh hóa đơn, trả thông tin đọc được |
+| GET/POST/DELETE | `/api/moments` | Ảnh / video 5 giây |
+| GET | `/api/summary/monthly?month=2026-10` | Tổng kết tháng |
+
+## Deploy
+
+Xem [docs/DEPLOY.md](docs/DEPLOY.md): EC2 + RDS + S3 + CloudFront, HTTPS và trỏ tên miền.

@@ -1,0 +1,8 @@
+# Caddy tự xin và gia hạn chứng chỉ HTTPS (Let's Encrypt) cho API_DOMAIN
+{$API_DOMAIN} {
+	encode gzip
+	request_body {
+		max_size 25MB
+	}
+	reverse_proxy api:8080
+}

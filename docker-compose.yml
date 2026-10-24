@@ -1,0 +1,16 @@
+# Chạy local: docker compose up -d  (PostgreSQL cho dev + database test)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: financehealth
+      POSTGRES_USER: financehealth
+      POSTGRES_PASSWORD: financehealth
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+
+volumes:
+  pgdata:

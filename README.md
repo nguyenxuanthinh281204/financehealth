@@ -21,8 +21,9 @@ Web app cá nhân (dùng được như app trên điện thoại) để quản l
 ```
 backend/    Spring Boot API
 frontend/   React PWA
-deploy/     docker-compose production, Caddy (HTTPS), .env mẫu
-docs/       DEPLOY.md: hướng dẫn deploy AWS + tên miền
+deploy/     deploy AWS: docker-compose cho EC2, Caddy (HTTPS), .env mẫu
+deploy-vps/ deploy 1 VPS (BizFly, VNG, Vietnix...): web + API + PostgreSQL, script sao lưu
+docs/       DEPLOY-VN.md (VPS Việt Nam), DEPLOY.md (AWS)
 ```
 
 ## Chạy local
@@ -63,6 +64,8 @@ cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
 | `CORS_ORIGINS` | `http://localhost:5173` | Domain frontend được gọi API |
 | `STORAGE_TYPE` | `local` | `local` hoặc `s3` |
 | `S3_BUCKET`, `AWS_REGION` | | Bucket lưu media khi dùng S3 |
+| `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | trống | Object Storage chuẩn S3 ngoài AWS (BizFly, VNG, FPT...). Để trống khi dùng AWS S3 với IAM role |
+| `S3_PATH_STYLE` | `true` | Dùng địa chỉ dạng `endpoint/bucket/key` (chỉ áp dụng khi có `S3_ENDPOINT`) |
 | `PUBLIC_BASE_URL` | `http://localhost:8080` | URL công khai của API (ký link file khi lưu local) |
 | `ANTHROPIC_API_KEY` | trống | Bật quét hóa đơn bằng AI |
 | `RECEIPT_MODEL` | `claude-opus-5-5` | Model dùng để đọc hóa đơn |
@@ -84,4 +87,5 @@ cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
 
 ## Deploy
 
-Xem [docs/DEPLOY.md](docs/DEPLOY.md): EC2 + RDS + S3 + CloudFront, HTTPS và trỏ tên miền.
+- **VPS Việt Nam** (đơn giản, rẻ): [docs/DEPLOY-VN.md](docs/DEPLOY-VN.md). Một VPS Ubuntu chạy toàn bộ bằng Docker, HTTPS tự động, sao lưu hằng ngày.
+- **AWS**: [docs/DEPLOY.md](docs/DEPLOY.md). EC2 + RDS + S3 + CloudFront, HTTPS và trỏ tên miền.

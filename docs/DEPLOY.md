@@ -2,6 +2,7 @@
 
 Tài liệu này đi từ tài khoản AWS trống tới khi app chạy ở `https://ten-mien-cua-ban.com` và cài được lên điện thoại.
 Trong toàn bộ hướng dẫn, thay `ten-mien-cua-ban.com` bằng tên miền thật của bạn.
+Muốn dùng nhà cung cấp Việt Nam (một VPS, đơn giản hơn) thì xem [DEPLOY-VN.md](DEPLOY-VN.md).
 
 ## 0. Kiến trúc
 

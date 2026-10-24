@@ -14,8 +14,13 @@ public record AppProperties(
 
     public record Jwt(String secret, long ttlHours) {}
 
+    /**
+     * s3Endpoint để trống = AWS S3. Điền endpoint (vd. https://hn.ss.bfcplatform.vn) để dùng
+     * Object Storage chuẩn S3 của nhà cung cấp khác, kèm access key/secret key của họ.
+     */
     public record Storage(String type, String localDir, String publicBaseUrl,
-                          String s3Bucket, String s3Region, long signedUrlMinutes) {}
+                          String s3Bucket, String s3Region, long signedUrlMinutes,
+                          String s3Endpoint, String s3AccessKey, String s3SecretKey, boolean s3PathStyle) {}
 
     public record Receipt(String anthropicApiKey, String model) {}
 

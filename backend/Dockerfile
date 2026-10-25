@@ -1,5 +1,6 @@
 # Build
-FROM maven:3.9-eclipse-temurin-21 AS build
+# Jar không phụ thuộc kiến trúc CPU nên build trên máy chạy build (nhanh khi build image ARM)
+FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
 RUN mvn -q -B dependency:go-offline

@@ -23,7 +23,8 @@ backend/    Spring Boot API
 frontend/   React PWA
 deploy/     deploy AWS: docker-compose cho EC2, Caddy (HTTPS), .env mẫu
 deploy-vps/ deploy 1 VPS (BizFly, VNG, Vietnix...): web + API + PostgreSQL, script sao lưu
-docs/       DEPLOY-VN.md (VPS Việt Nam), DEPLOY.md (AWS)
+deploy-natvps/ deploy NAT VPS qua Cloudflare Tunnel, dùng image build sẵn trên GitHub
+docs/       DEPLOY-VN.md (VPS Việt Nam), DEPLOY-NATVPS.md (NAT VPS), DEPLOY.md (AWS)
 ```
 
 ## Chạy local
@@ -88,4 +89,5 @@ cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
 ## Deploy
 
 - **VPS Việt Nam** (đơn giản, rẻ): [docs/DEPLOY-VN.md](docs/DEPLOY-VN.md). Một VPS Ubuntu chạy toàn bộ bằng Docker, HTTPS tự động, sao lưu hằng ngày.
+- **NAT VPS** (rẻ nhất, không cần IP riêng): [docs/DEPLOY-NATVPS.md](docs/DEPLOY-NATVPS.md). Cloudflare Tunnel lo HTTPS, image Docker build sẵn trên GitHub, cấu hình vừa máy 1 GB RAM.
 - **AWS**: [docs/DEPLOY.md](docs/DEPLOY.md). EC2 + RDS + S3 + CloudFront, HTTPS và trỏ tên miền.

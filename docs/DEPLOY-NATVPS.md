@@ -1,0 +1,203 @@
+# Deploy FinanceHealth lên NAT VPS (qua Cloudflare Tunnel)
+
+NAT VPS rẻ nhưng **không có IP riêng** và **không mở được cổng 80/443**: nhiều máy dùng chung một IP, mỗi máy chỉ được chuyển tiếp vài cổng (ví dụ 20 cổng để SSH). Vì vậy không tự cấp HTTPS được như VPS thường.
+
+Cách giải: **Cloudflare Tunnel** (miễn phí). Trên VPS chạy thêm một container `cloudflared`, container này chủ động kết nối ra Cloudflare. Người dùng vào `https://ten-mien-cua-ban.com`, Cloudflare lo HTTPS rồi chuyển yêu cầu vào VPS qua kết nối đó. **Không cần mở cổng nào.**
+
+Thay `ten-mien-cua-ban.com` bằng tên miền thật của bạn. Có VPS thường (IP riêng) thì dùng [DEPLOY-VN.md](DEPLOY-VN.md), đơn giản hơn.
+
+## 0. Mô hình và yêu cầu
+
+```
+Điện thoại ──HTTPS──► Cloudflare ◄──── tunnel (VPS tự kết nối ra) ────┐
+                                                                      │
+NAT VPS (Docker) ─────────────────────────────────────────────────────┤
+   ├─ tunnel : cloudflared ───────────────────────────────────────────┘
+   ├─ web    : Caddy + trang React (HTTP nội bộ)  ── /api, /files ──► api
+   ├─ api    : Spring Boot (image build sẵn trên GitHub)
+   └─ db     : PostgreSQL 16
+```
+
+**Yêu cầu NAT VPS:**
+
+| | Tối thiểu | Khuyên dùng |
+|---|---|---|
+| RAM | 1 GB | 2 GB |
+| Ổ đĩa | 10 GB | 20 GB (hoặc lưu ảnh/video trên Object Storage, mục 6) |
+| CPU | 1 vCPU, amd64 hoặc arm64 | |
+| Ảo hóa | **KVM** | |
+| Hệ điều hành | Ubuntu 22.04/24.04 hoặc Debian 12 | |
+
+> **Quan trọng:** NAT VPS loại **OpenVZ/LXC** thường **không chạy được Docker**. Hỏi nhà cung cấp hoặc xem mô tả gói, phải là **KVM**.
+> Với 512 MB RAM thì không đủ cho Java + PostgreSQL.
+
+Image Docker được **GitHub tự build sẵn** (workflow `Docker images`), nên VPS không phải build Java/Node nặng, chỉ tải về chạy.
+
+---
+
+## 1. Chuyển DNS tên miền sang Cloudflare
+
+1. Đăng ký tài khoản tại [dash.cloudflare.com](https://dash.cloudflare.com/) → **Add a domain** → nhập `ten-mien-cua-ban.com` → chọn gói **Free**.
+2. Cloudflare cho 2 nameserver (dạng `xxx.ns.cloudflare.com`). Vào trang quản lý tên miền nơi bạn mua → đổi **Nameserver** sang 2 địa chỉ này.
+3. Chờ Cloudflare báo tên miền **Active** (vài phút tới vài giờ).
+4. Nếu trước đó có bản ghi A/CNAME cho `@` hoặc `www` trỏ chỗ khác, xóa đi để bước 2 tạo lại.
+
+---
+
+## 2. Tạo Cloudflare Tunnel
+
+1. Cloudflare Dashboard → **Zero Trust** (lần đầu chọn gói Free, có thể phải nhập thẻ nhưng không bị trừ tiền) → **Networks → Tunnels → Create a tunnel**.
+2. Chọn **Cloudflared**, đặt tên `financehealth` → Save.
+3. Màn hình cài đặt: chọn **Docker**, sẽ thấy lệnh dạng `docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token eyJh...`.
+   Copy **phần sau `--token`** (chuỗi dài `eyJh...`). Không cần chạy lệnh đó. Bấm Next.
+4. **Public Hostname**:
+   - Subdomain: để trống · Domain: `ten-mien-cua-ban.com`
+   - Service Type: **HTTP** · URL: **`web:80`**
+   - Save tunnel.
+5. (Tùy chọn) Thêm một public hostname nữa với subdomain `www`, cũng trỏ `web:80`.
+
+Cloudflare tự tạo bản ghi DNS cho tên miền. Trạng thái tunnel sẽ chuyển **Healthy** sau khi VPS chạy ở bước 5.
+
+---
+
+## 3. Cho phép VPS tải image từ GitHub
+
+Mỗi lần code trên `main` thay đổi, workflow **Docker images** build 2 image:
+
+- `ghcr.io/nguyenxuanthinh281204/financehealth-api`
+- `ghcr.io/nguyenxuanthinh281204/financehealth-web`
+
+Lần đầu:
+
+1. Vào tab **Actions** của repo, kiểm tra workflow **Docker images** chạy xanh (chưa chạy thì bấm **Run workflow**).
+2. Vào `https://github.com/nguyenxuanthinh281204?tab=packages` → mở từng package → **Package settings** → **Change visibility → Public**.
+   Như vậy VPS tải được mà không cần đăng nhập. Image chỉ chứa code (vốn đã public trên repo), không chứa mật khẩu hay dữ liệu nào.
+
+Muốn để private: trên VPS chạy `docker login ghcr.io -u nguyenxuanthinh281204` với mật khẩu là một [Personal access token](https://github.com/settings/tokens) có quyền `read:packages`.
+
+---
+
+## 4. Cài đặt NAT VPS
+
+Nhà cung cấp sẽ cho IP chung và **một cổng SSH riêng**:
+
+```bash
+ssh -p <CONG_SSH> root@<IP_NAT>
+
+apt update && apt upgrade -y
+curl -fsSL https://get.docker.com | sh
+apt install -y git
+
+# Swap 1–2 GB giúp máy ít RAM không bị tắt app khi thiếu bộ nhớ
+fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+```
+
+Nếu lệnh tạo swap báo lỗi, gói VPS không cho phép swap, bỏ qua bước đó.
+
+---
+
+## 5. Chạy app
+
+```bash
+git clone --depth 1 https://github.com/nguyenxuanthinh281204/financehealth.git
+cd financehealth/deploy-natvps
+cp .env.example .env
+nano .env
+```
+
+Điền:
+
+- `DOMAIN=ten-mien-cua-ban.com`
+- `CLOUDFLARE_TUNNEL_TOKEN=` chuỗi `eyJh...` ở bước 2
+- `DB_PASSWORD=` mật khẩu mạnh tự đặt
+- `JWT_SECRET=` kết quả `openssl rand -base64 48`
+- Máy 2 GB RAM: sửa `JAVA_OPTS` theo ghi chú trong file.
+
+```bash
+docker compose pull
+docker compose up -d
+docker compose ps                 # 4 dịch vụ: db, api, web, tunnel đều "running"
+docker compose logs -f api        # chờ "Started FinanceHealthApplication", Ctrl+C để thoát
+```
+
+Mở `https://ten-mien-cua-ban.com`, đăng ký tài khoản và dùng. Trong Cloudflare Zero Trust, tunnel hiện **Healthy**.
+
+Với `JAVA_OPTS` mặc định, API dùng khoảng 375 MB RAM (đã đo khi chạy thử), PostgreSQL được giới hạn 192 MB, nên vừa với máy 1 GB.
+
+---
+
+## 6. Lưu ảnh/video trên Object Storage (khuyên dùng cho NAT VPS)
+
+Ổ NAT VPS thường nhỏ, video sẽ làm đầy ổ nhanh. Có thể dùng một trong hai:
+
+**Cloudflare R2** (đã có tài khoản Cloudflare, miễn phí 10 GB, không tính phí băng thông):
+
+1. Dashboard → **R2 Object Storage** → **Create bucket** `financehealth-media` (để private).
+2. **Manage R2 API Tokens → Create API token**, quyền **Object Read & Write**, giới hạn vào bucket trên. Lưu **Access Key ID**, **Secret Access Key** và **endpoint** (dạng `https://<account-id>.r2.cloudflarestorage.com`).
+3. Sửa `.env`:
+   ```
+   STORAGE_TYPE=s3
+   S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+   S3_BUCKET=financehealth-media
+   S3_ACCESS_KEY=<access-key-id>
+   S3_SECRET_KEY=<secret-access-key>
+   AWS_REGION=auto
+   S3_PATH_STYLE=true
+   ```
+
+**Hoặc Object Storage của nhà cung cấp Việt Nam** (BizFly, VNG, FPT): cách điền giống mục 6 trong [DEPLOY-VN.md](DEPLOY-VN.md).
+
+Rồi `docker compose up -d` để áp dụng. Chọn cách lưu ngay từ đầu, vì file đã lưu trên ổ VPS không tự chuyển sang.
+
+---
+
+## 7. Sao lưu hằng ngày
+
+```bash
+crontab -e
+0 3 * * * /root/financehealth/deploy-natvps/backup.sh >> /root/backup.log 2>&1
+```
+
+Script sao lưu database (và ảnh/video nếu đang lưu trên ổ VPS) vào `~/backups`, giữ 14 ngày. Nên định kỳ chép về máy bạn:
+
+```bash
+scp -P <CONG_SSH> -r root@<IP_NAT>:~/backups ./financehealth-backups
+```
+
+Khôi phục: xem lệnh ở cuối mục 5 trong [DEPLOY-VN.md](DEPLOY-VN.md), chạy trong thư mục `deploy-natvps`.
+
+---
+
+## 8. Cập nhật phiên bản mới
+
+Sau khi code mới lên `main` và workflow **Docker images** chạy xong (khoảng 5 phút):
+
+```bash
+cd ~/financehealth && git pull
+cd deploy-natvps && docker compose pull && docker compose up -d
+docker image prune -f      # dọn image cũ cho đỡ tốn ổ
+```
+
+Đừng chạy `docker compose down -v`: cờ `-v` **xóa toàn bộ dữ liệu**.
+
+---
+
+## 9. Quét hóa đơn bằng AI, cài lên điện thoại
+
+- Điền `ANTHROPIC_API_KEY` trong `.env` rồi `docker compose up -d` (xem [DEPLOY-VN.md mục 7](DEPLOY-VN.md)).
+- Cài lên màn hình chính: iPhone dùng Safari → **Chia sẻ → Thêm vào MH chính**. Android dùng Chrome → **Cài đặt ứng dụng**. Camera chạy được vì Cloudflare đã cấp HTTPS.
+
+---
+
+## 10. Xử lý sự cố
+
+| Hiện tượng | Cách kiểm tra |
+|---|---|
+| `docker compose pull` báo `denied` / `unauthorized` | Package trên GitHub đang private, xem bước 3. |
+| `docker` không chạy được, lỗi cgroup/overlay | VPS là OpenVZ/LXC, cần đổi sang gói KVM. |
+| Tunnel không Healthy | Sai `CLOUDFLARE_TUNNEL_TOKEN`. Xem `docker compose logs tunnel`. |
+| Trang báo **502 Bad Gateway** / **Error 1033** | Public hostname chưa trỏ đúng `web:80`, hoặc `web` chưa chạy (`docker compose ps`). |
+| `api` cứ khởi động lại | Thiếu RAM. Chạy `free -h`, `docker compose logs api`. Bật swap, hoặc giảm `-Xmx` trong `JAVA_OPTS`. |
+| Ảnh không hiện khi dùng R2/S3 | Sai endpoint, key hoặc tên bucket. Xem `docker compose logs api`. |
+| Ổ đầy | `df -h`, `docker image prune -f`, xóa bớt `~/backups`, chuyển ảnh/video sang Object Storage. |

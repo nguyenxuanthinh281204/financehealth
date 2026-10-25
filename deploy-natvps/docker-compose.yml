@@ -1,0 +1,64 @@
+# Chạy app trên NAT VPS (không có IP riêng, không mở được cổng 80/443).
+# Truy cập qua Cloudflare Tunnel, image build sẵn trên GitHub nên không phải build trên máy.
+#   docker compose pull && docker compose up -d
+# Giới hạn RAM bên dưới hợp với máy 1 GB (bộ nhớ Java đặt bằng JAVA_OPTS trong .env).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    command: >
+      postgres -c shared_buffers=48MB -c work_mem=2MB -c maintenance_work_mem=16MB
+      -c max_connections=20 -c effective_cache_size=128MB
+    environment:
+      POSTGRES_DB: financehealth
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    mem_limit: 192m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d financehealth"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: ${IMAGE_PREFIX:-ghcr.io/nguyenxuanthinh281204/financehealth}-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/financehealth
+      CORS_ORIGINS: https://${DOMAIN}
+      PUBLIC_BASE_URL: https://${DOMAIN}
+      STORAGE_LOCAL_DIR: /app/data/uploads
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "5"
+      SERVER_TOMCAT_THREADS_MAX: "40"
+    volumes:
+      - uploads:/app/data
+    mem_limit: 600m
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: ${IMAGE_PREFIX:-ghcr.io/nguyenxuanthinh281204/financehealth}-web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    mem_limit: 64m
+    depends_on:
+      - api
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    mem_limit: 64m
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  uploads:

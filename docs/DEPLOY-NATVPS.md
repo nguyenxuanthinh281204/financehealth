@@ -62,7 +62,7 @@ Cloudflare tự tạo bản ghi DNS cho tên miền. Trạng thái tunnel sẽ c
 
 ## 3. Cho phép VPS tải image từ GitHub
 
-Mỗi lần code trên `main` thay đổi, workflow **Docker images** build 2 image:
+Mỗi lần code trên `main` thay đổi và CI chạy xanh, workflow **Docker images** build 2 image:
 
 - `ghcr.io/nguyenxuanthinh281204/financehealth-api`
 - `ghcr.io/nguyenxuanthinh281204/financehealth-web`
@@ -169,15 +169,41 @@ Khôi phục: xem lệnh ở cuối mục 5 trong [DEPLOY-VN.md](DEPLOY-VN.md), 
 
 ---
 
-## 8. Cập nhật phiên bản mới
+## 8. Cập nhật phiên bản mới (tự động)
 
-Sau khi code mới lên `main` và workflow **Docker images** chạy xong (khoảng 5 phút):
+Quy trình CI/CD:
+
+```
+push lên main ─► CI (test backend + build frontend)
+                   │ xanh
+                   ▼
+                 Docker images (build image :latest lên GHCR, ~5 phút)
+                   │
+                   ▼
+NAT VPS: cron chạy auto-update.sh mỗi 5 phút ─► thấy image mới thì kéo về, khởi động lại container
+```
+
+GitHub không SSH vào được NAT VPS (không có IP riêng), nên VPS **tự hỏi** GitHub có bản mới không. CI đỏ thì không có image mới, VPS giữ nguyên bản đang chạy.
+
+Bật một lần trên VPS:
 
 ```bash
-cd ~/financehealth && git pull
-cd deploy-natvps && docker compose pull && docker compose up -d
-docker image prune -f      # dọn image cũ cho đỡ tốn ổ
+chmod +x /root/financehealth/deploy-natvps/auto-update.sh
+crontab -e
+*/5 * * * * /root/financehealth/deploy-natvps/auto-update.sh >> /root/auto-update.log 2>&1
 ```
+
+Kiểm tra: push một thay đổi lên `main`, khoảng 10 phút sau xem `tail /root/auto-update.log`, sẽ có dòng `Đã cập nhật: ...`. Lần nào không có gì mới thì script không ghi gì và không khởi động lại app.
+
+Script cũng `git pull` để lấy thay đổi của `docker-compose.yml`/`Caddyfile`. Đừng sửa tay các file có trong repo trên VPS (chỉ sửa `.env`), nếu không `git pull` sẽ báo lỗi.
+
+Cập nhật thủ công (khi cần ngay):
+
+```bash
+/root/financehealth/deploy-natvps/auto-update.sh
+```
+
+Quay về bản cũ: mỗi image còn có tag là mã commit. Thêm `IMAGE_TAG=<mã commit đầy đủ>` vào `.env` rồi `docker compose up -d` (lúc này auto-update giữ nguyên bản đó). Xóa dòng `IMAGE_TAG` để quay lại tự cập nhật.
 
 Đừng chạy `docker compose down -v`: cờ `-v` **xóa toàn bộ dữ liệu**.
 

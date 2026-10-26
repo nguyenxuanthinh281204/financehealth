@@ -237,17 +237,25 @@ textarea.input { min-height: 80px; resize: vertical; }
 .moment-tile img, .moment-tile video { width: 100%; height: 100%; object-fit: cover; }
 .moment-tile .badge { position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,.55); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 6px; }
 .camera { position: fixed; inset: 0; z-index: 60; background: #000; color: #fff; display: flex; flex-direction: column; }
-.camera video.preview { flex: 1; width: 100%; object-fit: cover; min-height: 0; }
+.camera .top, .camera .bottom { display: flex; align-items: center; justify-content: space-between; padding: 16px; flex: none; }
+.camera .top { padding-top: calc(16px + env(safe-area-inset-top, 0px)); }
+.camera .bottom { padding-bottom: calc(24px + var(--safe-b)); flex-direction: column; gap: 18px; }
+.camera .bottom > .input { width: 100%; }
+/* Khung vuông kiểu Locket: xem trước, ảnh đã chụp và video đều nằm trong khung này */
+.camera .stage { flex: 1; min-height: 0; display: grid; place-items: center; padding: 0 12px; container-type: size; }
+.camera .frame { position: relative; width: min(100%, 100cqh); max-width: 560px; aspect-ratio: 1; border-radius: 32px; overflow: hidden; background: #1a1a1a; }
+.camera .frame video, .camera .frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .camera .mirror { transform: scaleX(-1); }
-.camera .top, .camera .bottom { position: absolute; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px; }
-.camera .top { top: env(safe-area-inset-top, 0); }
-.camera .bottom { bottom: 0; padding-bottom: calc(28px + var(--safe-b)); flex-direction: column; gap: 18px; }
+.camera .rec-time { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.5); padding: 4px 12px; border-radius: 99px; font-size: 14px; }
 .camera .icon-btn { background: rgba(255,255,255,.15); border-color: transparent; color: #fff; }
+.send-btn { width: 78px; height: 78px; border-radius: 50%; border: none; background: #ffd60a; color: #1a1a1a; display: grid; place-items: center; cursor: pointer; }
+.send-btn svg { transform: translate(-2px, 1px); }
+.send-btn:disabled { opacity: .7; }
 .shutter { width: 78px; height: 78px; border-radius: 50%; border: 5px solid #fff; background: transparent; display: grid; place-items: center; cursor: pointer; position: relative; }
 .shutter i { width: 60px; height: 60px; border-radius: 50%; background: #fff; transition: all .2s; }
 .shutter.video i { background: #ff3b30; }
 .shutter.recording i { width: 28px; height: 28px; border-radius: 8px; }
-.shutter svg { position: absolute; inset: -10px; }
+.shutter .ring { position: absolute; inset: -10px; }
 .mode-switch { display: flex; gap: 18px; font-weight: 600; font-size: 14px; }
 .mode-switch button { background: none; border: none; color: rgba(255,255,255,.6); cursor: pointer; }
 .mode-switch button.on { color: #ffd60a; }

@@ -1,8 +1,9 @@
 /**
  * Thu nhỏ ảnh về tối đa `maxSide` px và chuyển sang JPEG.
  * Đồng thời đổi ảnh HEIC của iPhone sang JPEG (Safari tự giải mã HEIC khi vẽ lên canvas).
+ * `square` cắt vuông phần giữa ảnh (như khung Locket).
  */
-export async function toJpeg(file: Blob, maxSide = 1600, quality = 0.85): Promise<Blob> {
+export async function toJpeg(file: Blob, maxSide = 1600, quality = 0.85, square = false): Promise<Blob> {
   const url = URL.createObjectURL(file)
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -11,11 +12,13 @@ export async function toJpeg(file: Blob, maxSide = 1600, quality = 0.85): Promis
       el.onerror = () => reject(new Error('Không đọc được ảnh'))
       el.src = url
     })
-    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight))
+    const w = img.naturalWidth, h = img.naturalHeight
+    const sw = square ? Math.min(w, h) : w, sh = square ? Math.min(w, h) : h
+    const scale = Math.min(1, maxSide / Math.max(sw, sh))
     const canvas = document.createElement('canvas')
-    canvas.width = Math.round(img.naturalWidth * scale)
-    canvas.height = Math.round(img.naturalHeight * scale)
-    canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+    canvas.width = Math.round(sw * scale)
+    canvas.height = Math.round(sh * scale)
+    canvas.getContext('2d')!.drawImage(img, (w - sw) / 2, (h - sh) / 2, sw, sh, 0, 0, canvas.width, canvas.height)
     return await new Promise<Blob>((resolve, reject) =>
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Không nén được ảnh'))), 'image/jpeg', quality))
   } finally {

@@ -125,7 +125,7 @@ export default function CameraSheet({ onClose }: { onClose: () => void }) {
       }
       setCaptured({ blob: file, type: 'VIDEO', url: URL.createObjectURL(file), duration: d })
     } else {
-      const jpeg = await toJpeg(file, 1440, 0.88)
+      const jpeg = await toJpeg(file, 1440, 0.88, true)
       setCaptured({ blob: jpeg, type: 'PHOTO', url: URL.createObjectURL(jpeg) })
     }
     stopStream()
@@ -156,21 +156,25 @@ export default function CameraSheet({ onClose }: { onClose: () => void }) {
       <input ref={fileRef} type="file" accept="image/*,video/*" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickFile(f); e.target.value = '' }} />
 
-      {captured ? (
-        captured.type === 'PHOTO'
-          ? <img src={captured.url} alt="" style={{ flex: 1, width: '100%', objectFit: 'contain', minHeight: 0 }} />
-          : <video src={captured.url} autoPlay loop playsInline style={{ flex: 1, width: '100%', objectFit: 'contain', minHeight: 0 }} />
-      ) : (
-        <video ref={videoRef} className={`preview ${facing === 'user' ? 'mirror' : ''}`} playsInline muted autoPlay />
-      )}
-
       <div className="top">
         <button className="icon-btn" onClick={onClose} aria-label="Đóng"><X size={20} /></button>
-        {recording && <b>{(progress * MAX_SECONDS).toFixed(1)}s / {MAX_SECONDS}s</b>}
         {!captured && !recording && (
           <button className="icon-btn" onClick={() => setFacing(facing === 'user' ? 'environment' : 'user')} aria-label="Đổi camera"><RefreshCw size={20} /></button>
         )}
         {captured && <span />}
+      </div>
+
+      <div className="stage">
+        <div className="frame">
+          {captured ? (
+            captured.type === 'PHOTO'
+              ? <img src={captured.url} alt="Ảnh vừa chụp" />
+              : <video src={captured.url} autoPlay loop playsInline />
+          ) : (
+            <video ref={videoRef} className={facing === 'user' ? 'mirror' : ''} playsInline muted autoPlay />
+          )}
+          {recording && <b className="rec-time">{(progress * MAX_SECONDS).toFixed(1)}s / {MAX_SECONDS}s</b>}
+        </div>
       </div>
 
       <div className="bottom">
@@ -182,8 +186,8 @@ export default function CameraSheet({ onClose }: { onClose: () => void }) {
               placeholder="Thêm chú thích…" maxLength={200} value={caption} onChange={(e) => setCaption(e.target.value)} />
             <div className="row" style={{ gap: 28 }}>
               <button className="icon-btn" style={{ width: 56, height: 56 }} onClick={() => { setCaptured(null); setCaption('') }} aria-label="Chụp lại"><RotateCcw size={22} /></button>
-              <button className="shutter" onClick={() => upload.mutate()} disabled={upload.isPending} aria-label="Lưu">
-                {upload.isPending ? <Spinner /> : <Send size={28} />}
+              <button className="send-btn" onClick={() => upload.mutate()} disabled={upload.isPending} aria-label="Lưu">
+                {upload.isPending ? <Spinner /> : <Send size={30} />}
               </button>
               <span style={{ width: 56 }} />
             </div>
@@ -196,7 +200,7 @@ export default function CameraSheet({ onClose }: { onClose: () => void }) {
                 aria-label={mode === 'PHOTO' ? 'Chụp' : recording ? 'Dừng' : 'Quay'}>
                 <i />
                 {recording && (
-                  <svg width="88" height="88" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                  <svg className="ring" width="88" height="88" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                     <circle cx="50" cy="50" r={R} fill="none" stroke="#ffd60a" strokeWidth="6" strokeDasharray={C} strokeDashoffset={C * (1 - progress)} />
                   </svg>
                 )}

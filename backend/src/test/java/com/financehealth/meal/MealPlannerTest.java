@@ -86,4 +86,30 @@ class MealPlannerTest {
         double kcal = items.stream().mapToDouble(i -> i.food().getKcal().doubleValue() * i.grams() / 100).sum();
         assertThat(kcal).isBetween(450.0, 700.0);
     }
+
+    @Test
+    void weeklyStaplesFitTargetsAndEggsAreWhole() {
+        Map<String, Food> staples = Map.of(
+                "EGG", food("Trứng gà luộc", Category.PROTEIN, 155, 13, 1.1, 11, 100, 50, 200, EnumSet.allOf(Meal.class)).withUnit(50, "quả"),
+                "CHICKEN", chicken,
+                "RICE", food("Cơm", Category.CARB, 130, 2.7, 28.2, 0.3, 150, 50, 600, EnumSet.of(Meal.LUNCH, Meal.DINNER)),
+                "SAUSAGE", food("Xúc xích luộc", Category.PROTEIN, 250, 12, 6, 20, 50, 25, 100, EnumSet.allOf(Meal.class)),
+                "CARROT", food("Cà rốt luộc", Category.VEGGIE, 35, 0.8, 8.2, 0.2, 100, 50, 250, EnumSet.of(Meal.LUNCH, Meal.DINNER)),
+                "PUMPKIN", food("Bí đỏ luộc", Category.VEGGIE, 20, 0.7, 4.9, 0.1, 150, 50, 300, EnumSet.of(Meal.LUNCH, Meal.DINNER)),
+                "APPLE", food("Táo", Category.FRUIT, 52, 0.3, 13.8, 0.2, 150, 0, 300, EnumSet.allOf(Meal.class)),
+                "BREAD", food("Bánh mì", Category.CARB, 265, 9, 49, 3.2, 80, 40, 250, EnumSet.of(Meal.BREAKFAST)));
+        var targets = new MealPlanner.Targets(2770, 130, 390, 77);
+        for (int d = 0; d < 7; d++) {
+            var items = planner.plan(targets, WeeklyMenuTemplate.forDay(d, staples));
+            double kcal = 0, protein = 0;
+            for (var i : items) {
+                kcal += i.food().getKcal().doubleValue() * i.grams() / 100;
+                protein += i.food().getProtein().doubleValue() * i.grams() / 100;
+                if (i.food().getUnitG() != null) assertThat(i.grams() % 50).isZero();
+            }
+            assertThat(kcal).isBetween(2770 * 0.9, 2770 * 1.1);
+            assertThat(protein).isBetween(130 * 0.85, 130 * 1.2);
+            assertThat(items.stream().map(MealPlanner.PlannedItem::meal).distinct()).hasSize(3);
+        }
+    }
 }

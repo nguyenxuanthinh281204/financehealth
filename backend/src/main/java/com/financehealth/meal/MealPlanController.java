@@ -19,9 +19,16 @@ public class MealPlanController {
         this.service = service;
     }
 
-    @PostMapping("/generate")
-    public PlanView generate(@Valid @RequestBody GenerateRequest req) {
-        return service.generate(CurrentUser.id(), req);
+    /** Tuần chứa ngày date (mặc định hôm nay), thứ Hai đến Chủ nhật. */
+    @GetMapping("/week")
+    public WeekView week(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return service.week(CurrentUser.id(), date);
+    }
+
+    /** Tạo thực đơn cho tuần hiện tại, mỗi tuần một lần. */
+    @PostMapping("/week")
+    public WeekView generateWeek() {
+        return service.generateWeek(CurrentUser.id());
     }
 
     @GetMapping("/{date}")
@@ -33,11 +40,5 @@ public class MealPlanController {
     @PatchMapping("/items/{itemId}")
     public PlanView updateItem(@PathVariable long itemId, @Valid @RequestBody UpdateItemRequest req) {
         return service.updateItem(CurrentUser.id(), itemId, req.grams());
-    }
-
-    @DeleteMapping("/{date}")
-    public ResponseEntity<Void> delete(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        service.delete(CurrentUser.id(), date);
-        return ResponseEntity.noContent().build();
     }
 }

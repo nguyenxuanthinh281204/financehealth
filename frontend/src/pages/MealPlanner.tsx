@@ -1,38 +1,36 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Plus, RefreshCw, Search, Sparkles, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingBasket, Sparkles } from 'lucide-react'
 import { api } from '../api/client'
-import type { Food, FoodCategory, Meal, Plan } from '../api/types'
-import { useFoods, usePlan, useProfile } from '../lib/queries'
-import { FOOD_CATEGORIES, MEALS, addDays, isoDate, num, prettyDate } from '../lib/format'
+import type { Plan, PlanItem, ShoppingItem, WeekMenu } from '../api/types'
+import { useProfile, useWeekMenu } from '../lib/queries'
+import { MEALS, WEEKDAYS_SHORT, addDays, isoDate, num, prettyDate, shortDate, weekStartOf } from '../lib/format'
 import { Empty, ErrorText, Loading, MacroBar, Spinner } from '../components/ui'
-import FoodSheet from './meal/FoodSheet'
 
-type Selection = Record<number, Meal | null>
-const draftKey = (date: string) => `fh.meal-draft.${date}`
-const loadDraft = (date: string): Selection => {
-  try { return JSON.parse(localStorage.getItem(draftKey(date)) ?? '{}') } catch { return {} }
-}
-const saveDraft = (date: string, s: Selection) => {
-  try { localStorage.setItem(draftKey(date), JSON.stringify(s)) } catch { /* bỏ qua */ }
-}
-const MEAL_CYCLE: (Meal | null)[] = [null, 'BREAKFAST', 'LUNCH', 'DINNER']
+/** "150 g · 3 quả" cho món có đơn vị, còn lại chỉ số gram */
+const unitText = (grams: number, unitG: number | null, unitName: string | null) =>
+  unitG && unitName ? `${Math.round(grams / unitG)} ${unitName}` : null
 
 export default function MealPlanner() {
   const today = isoDate()
-  const [date, setDate] = useState(addDays(today, 1))
+  const thisWeek = weekStartOf(today)
+  const [weekStart, setWeekStart] = useState(thisWeek)
+  const [day, setDay] = useState(today)
   const profile = useProfile()
-  const plan = usePlan(date)
-  const [picking, setPicking] = useState(false)
+  const week = useWeekMenu(weekStart)
 
-  useEffect(() => setPicking(false), [date])
+  const goWeek = (n: number) => {
+    const next = addDays(weekStart, 7 * n)
+    setWeekStart(next)
+    setDay(next === thisWeek ? today : next)
+  }
 
   if (profile.isLoading) return <Loading />
   if (!profile.data) {
     return (
       <>
-        <div className="page-head"><h1>Thực đơn</h1></div>
+        <div className="page-head"><h1>Thực đơn tuần</h1></div>
         <div className="card"><Empty emoji="🥗" title="Cần chỉ số cơ thể trước">
           Hệ thống dựa vào chiều cao, cân nặng và mức tập để chia macro cho 3 bữa.
           <div style={{ marginTop: 12 }}><Link className="btn" to="/co-the">Nhập chỉ số</Link></div>
@@ -41,159 +39,98 @@ export default function MealPlanner() {
     )
   }
 
-  const showPlan = plan.data && !picking
+  const plan = week.data?.days.find((d) => d.date === day)
   return (
     <>
       <div className="page-head">
-        <div><h1>Thực đơn 3 bữa</h1><div className="sub">Chọn món bạn có, hệ thống tính lượng ăn cho đủ macro</div></div>
-      </div>
-      <div className="scroll-x" style={{ marginBottom: 12 }}>
-        {[today, addDays(today, 1), addDays(today, 2)].map((d) => (
-          <button key={d} className={`chip ${date === d ? 'on' : ''}`} onClick={() => setDate(d)}>{prettyDate(d)}</button>
-        ))}
-        <input type="date" className="input" style={{ width: 160, minHeight: 36, padding: '4px 10px', flex: 'none' }}
-          value={date} onChange={(e) => e.target.value && setDate(e.target.value)} aria-label="Chọn ngày" />
+        <div><h1>Thực đơn tuần</h1><div className="sub">Đồ luộc, tạo một lần cho cả tuần</div></div>
       </div>
 
-      {plan.isLoading ? <Loading /> : showPlan
-        ? <PlanView plan={plan.data!} onRepick={() => setPicking(true)} />
-        : <Picker date={date} existing={plan.data ?? null} onDone={() => setPicking(false)} />}
+      <div className="row between" style={{ marginBottom: 8 }}>
+        <button className="icon-btn" onClick={() => goWeek(-1)} aria-label="Tuần trước"><ChevronLeft size={18} /></button>
+        <b>{weekStart === thisWeek ? 'Tuần này' : 'Tuần'} · {shortDate(weekStart)} – {shortDate(addDays(weekStart, 6))}</b>
+        <button className="icon-btn" onClick={() => goWeek(1)} disabled={weekStart >= thisWeek} aria-label="Tuần sau"><ChevronRight size={18} /></button>
+      </div>
+
+      {week.isLoading || !week.data ? <Loading /> : !week.data.created ? (
+        <CreateWeek week={week.data} />
+      ) : (
+        <>
+          <div className="week-strip" role="tablist" aria-label="Ngày trong tuần">
+            {WEEKDAYS_SHORT.map((label, i) => {
+              const d = addDays(weekStart, i)
+              return (
+                <button key={d} role="tab" aria-selected={d === day} className={`week-day ${d === day ? 'on' : ''} ${d === today ? 'today' : ''}`}
+                  onClick={() => setDay(d)}>
+                  <span className="small">{label}</span>
+                  <b className="tnum">{new Date(d + 'T00:00:00').getDate()}</b>
+                </button>
+              )
+            })}
+          </div>
+          {plan ? <DayPlan plan={plan} weekStart={weekStart} /> : (
+            <div className="card"><Empty emoji="🍽️" title="Ngày này chưa có thực đơn" /></div>
+          )}
+          <Shopping items={week.data.shopping} />
+        </>
+      )}
     </>
   )
 }
 
-function Picker({ date, existing, onDone }: { date: string; existing: Plan | null; onDone: () => void }) {
+function CreateWeek({ week }: { week: WeekMenu }) {
   const qc = useQueryClient()
-  const foods = useFoods()
-  const [selected, setSelected] = useState<Selection>(() => {
-    const draft = loadDraft(date)
-    if (Object.keys(draft).length) return draft
-    const fromPlan: Selection = {}
-    existing?.meals.forEach((m) => m.items.forEach((i) => { fromPlan[i.foodId] = null }))
-    return fromPlan
-  })
-  const [q, setQ] = useState('')
-  const [cat, setCat] = useState<FoodCategory | null>(null)
-  const [adding, setAdding] = useState(false)
-
-  useEffect(() => saveDraft(date, selected), [date, selected])
-
-  const visible = useMemo(() => {
-    const term = q.trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
-    return (foods.data ?? []).filter((f) => (!cat || f.category === cat) &&
-      (!term || f.name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').includes(term)))
-  }, [foods.data, q, cat])
-
-  const count = Object.keys(selected).length
-  const toggle = (f: Food) => {
-    const next = { ...selected }
-    if (f.id in next) delete next[f.id]
-    else next[f.id] = null
-    setSelected(next)
-  }
-  const cycleMeal = (f: Food) => {
-    const allowed = MEAL_CYCLE.filter((m) => m === null || f.meals.includes(m))
-    const idx = allowed.indexOf(selected[f.id] ?? null)
-    setSelected({ ...selected, [f.id]: allowed[(idx + 1) % allowed.length] })
-  }
-
   const generate = useMutation({
-    mutationFn: () => api.post<Plan>('/api/meal-plans/generate', {
-      date, selections: Object.entries(selected).map(([foodId, meal]) => ({ foodId: Number(foodId), meal })),
-    }),
-    onSuccess: (p) => {
-      qc.setQueryData(['plan', date], p)
+    mutationFn: () => api.post<WeekMenu>('/api/meal-plans/week'),
+    onSuccess: (w) => {
+      qc.setQueryData(['week', w.weekStart], w)
+      w.days.forEach((d) => qc.setQueryData(['plan', d.date], d))
       qc.invalidateQueries({ queryKey: ['summary'] })
-      saveDraft(date, {})
-      onDone()
     },
   })
 
   return (
-    <>
-      <div className="card">
-        <div className="row">
-          <div className="input-suffix grow">
-            <input className="input" placeholder="Tìm món: gà, cơm, trứng…" value={q} onChange={(e) => setQ(e.target.value)} />
-            <em><Search size={18} /></em>
-          </div>
-          <button className="icon-btn" onClick={() => setAdding(true)} aria-label="Thêm món mới"><Plus size={20} /></button>
-        </div>
-        <div className="scroll-x" style={{ marginTop: 10 }}>
-          <button className={`chip ${!cat ? 'on' : ''}`} onClick={() => setCat(null)}>Tất cả</button>
-          {(Object.keys(FOOD_CATEGORIES) as FoodCategory[]).map((c) => (
-            <button key={c} className={`chip ${cat === c ? 'on' : ''}`} onClick={() => setCat(cat === c ? null : c)}>{FOOD_CATEGORIES[c]}</button>
-          ))}
-        </div>
+    <div className="card">
+      <Empty emoji="🥚" title={week.canCreate ? 'Tuần này chưa có thực đơn' : 'Tuần này không có thực đơn'}>
+        {week.canCreate
+          ? 'Hệ thống chia 8 nguyên liệu dưới đây vào 3 bữa cho từng ngày, đủ calo và đạm theo chỉ số cơ thể. Mỗi tuần chỉ tạo một lần.'
+          : 'Chỉ tạo được thực đơn cho tuần hiện tại.'}
+      </Empty>
+      <div className="chips" style={{ justifyContent: 'center', margin: '4px 0 16px' }}>
+        {week.ingredients.map((name) => <span key={name} className="chip">{name}</span>)}
       </div>
-
-      <p className="small muted" style={{ margin: '12px 4px' }}>
-        Chạm để chọn món. Chạm vào nhãn bữa để ghim món vào bữa cố định, để <b>Tự động</b> thì hệ thống tự xếp.
-      </p>
-
-      {foods.isLoading ? <Loading /> : (
-        <div className="food-grid">
-          {visible.map((f) => {
-            const on = f.id in selected
-            const meal = selected[f.id]
-            return (
-              <div key={f.id} className={`food-pick ${on ? 'on' : ''}`} onClick={() => toggle(f)} role="checkbox" aria-checked={on} tabIndex={0}
-                onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && (e.preventDefault(), toggle(f))}>
-                <span className="check">{on && <Check size={14} />}</span>
-                <span className="grow">
-                  <div style={{ fontWeight: 500 }}>{f.name}{f.custom && <span className="muted small"> · của bạn</span>}</div>
-                  <div className="macro-pills" style={{ marginTop: 2 }}>
-                    <span>{num(f.kcal)} kcal</span><span className="p">Đ {num(f.protein, 1)}</span>
-                    <span className="c">C {num(f.carbs, 1)}</span><span className="f">B {num(f.fat, 1)}</span>
-                  </div>
-                </span>
-                {on && (
-                  <button className="chip" style={{ padding: '4px 10px', fontSize: 12 }} onClick={(e) => { e.stopPropagation(); cycleMeal(f) }}>
-                    {meal ? `${MEALS[meal].emoji} ${MEALS[meal].label.replace('Bữa ', '')}` : 'Tự động'}
-                  </button>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      <div style={{ position: 'sticky', bottom: 'calc(var(--nav-h) + var(--safe-b) + 12px)', marginTop: 16, zIndex: 5 }}>
-        <ErrorText error={generate.error} />
-        <div className="row" style={{ marginTop: 8 }}>
-          {existing && <button className="btn secondary" onClick={onDone}>Hủy</button>}
-          <button className="btn grow" style={{ boxShadow: '0 10px 30px rgba(29,107,82,.3)' }} disabled={count === 0 || generate.isPending}
-            onClick={() => generate.mutate()}>
-            {generate.isPending ? <><Spinner /> Đang tính…</> : <><Sparkles size={18} /> Tạo thực đơn ({count} món)</>}
+      {week.canCreate && (
+        <>
+          <ErrorText error={generate.error} />
+          <button className="btn block" disabled={generate.isPending} onClick={() => generate.mutate()}>
+            {generate.isPending ? <><Spinner /> Đang tính…</> : <><Sparkles size={18} /> Tạo thực đơn tuần này</>}
           </button>
-        </div>
-      </div>
-
-      {adding && <FoodSheet onClose={() => setAdding(false)} onCreated={(f) => setSelected((s) => ({ ...s, [f.id]: null }))} />}
-    </>
+        </>
+      )}
+    </div>
   )
 }
 
-function PlanView({ plan, onRepick }: { plan: Plan; onRepick: () => void }) {
+function DayPlan({ plan, weekStart }: { plan: Plan; weekStart: string }) {
   const qc = useQueryClient()
   const update = useMutation({
     mutationFn: ({ id, grams }: { id: number; grams: number }) => api.patch<Plan>(`/api/meal-plans/items/${id}`, { grams }),
-    onSuccess: (p) => qc.setQueryData(['plan', plan.date], p),
-  })
-  const remove = useMutation({
-    mutationFn: () => api.del(`/api/meal-plans/${plan.date}`),
-    onSuccess: () => qc.setQueryData(['plan', plan.date], null),
+    onSuccess: (p) => {
+      qc.setQueryData(['plan', p.date], p)
+      qc.invalidateQueries({ queryKey: ['week', weekStart] })
+    },
   })
   const t = plan.total, g = plan.target
   const diff = Math.round(t.kcal - g.kcal)
+  const close = Math.abs(diff) <= g.kcal * 0.05
 
   return (
     <>
-      <div className="card">
+      <div className="card" style={{ marginTop: 12 }}>
         <div className="card-head">
-          <h2>Tổng cả ngày</h2>
-          <span className={`small ${Math.abs(diff) <= g.kcal * 0.05 ? 'down' : 'muted'}`}>
-            {Math.abs(diff) <= g.kcal * 0.05 ? '✓ Sát mục tiêu' : `${diff > 0 ? '+' : ''}${num(diff)} kcal so với mục tiêu`}
+          <h2>{prettyDate(plan.date)}</h2>
+          <span className={`small ${close ? 'down' : 'muted'}`}>
+            {close ? '✓ Sát mục tiêu' : `${diff > 0 ? '+' : ''}${num(diff)} kcal so với mục tiêu`}
           </span>
         </div>
         <div className="stack">
@@ -211,26 +148,7 @@ function PlanView({ plan, onRepick }: { plan: Plan; onRepick: () => void }) {
               <h2>{MEALS[m.meal].emoji} {MEALS[m.meal].label}</h2>
               <span className="small muted tnum">{num(m.total.kcal)}/{num(m.target.kcal)} kcal</span>
             </div>
-            {m.items.map((i) => (
-              <div className="meal-item" key={i.id}>
-                <div>
-                  <div style={{ fontWeight: 500 }}>{i.foodName}</div>
-                  <div className="macro-pills" style={{ marginTop: 2 }}>
-                    <span>{num(i.macros.kcal)} kcal</span><span className="p">Đ {num(i.macros.protein)}</span>
-                    <span className="c">C {num(i.macros.carbs)}</span><span className="f">B {num(i.macros.fat)}</span>
-                  </div>
-                </div>
-                <label className="row" style={{ gap: 4 }}>
-                  <input className="gram-input tnum" inputMode="numeric" defaultValue={i.grams} key={`${i.id}-${i.grams}`}
-                    aria-label={`Số gram ${i.foodName}`}
-                    onBlur={(e) => {
-                      const grams = Math.max(0, Math.min(2000, Number(e.target.value) || 0))
-                      if (grams !== i.grams) update.mutate({ id: i.id, grams })
-                    }} />
-                  <span className="muted small">g</span>
-                </label>
-              </div>
-            ))}
+            {m.items.map((i) => <Item key={i.id} item={i} onChange={(grams) => update.mutate({ id: i.id, grams })} />)}
             <div className="macro-pills" style={{ marginTop: 10 }}>
               <span className="p">Đ {num(m.total.protein)}/{num(m.target.protein)}g</span>
               <span className="c">C {num(m.total.carbs)}/{num(m.target.carbs)}g</span>
@@ -239,12 +157,56 @@ function PlanView({ plan, onRepick }: { plan: Plan; onRepick: () => void }) {
           </div>
         ))}
       </div>
-      <p className="small muted" style={{ margin: '12px 4px' }}>Khối lượng tính theo món đã nấu chín. Sửa số gram rồi chạm ra ngoài để tính lại, nhập 0 để bỏ món.</p>
+      <p className="small muted" style={{ margin: '12px 4px' }}>
+        Khối lượng tính sau khi luộc chín. Đồ luộc ít béo nên phần calo béo còn thiếu được bù bằng cơm, bánh mì.
+        Sửa số gram rồi chạm ra ngoài để tính lại, nhập 0 để bỏ món.
+      </p>
       <ErrorText error={update.error} />
-      <div className="row" style={{ marginTop: 8 }}>
-        <button className="btn danger" onClick={() => remove.mutate()} aria-label="Xóa thực đơn"><Trash2 size={18} /></button>
-        <button className="btn secondary grow" onClick={onRepick}><RefreshCw size={18} /> Chọn lại món</button>
-      </div>
     </>
+  )
+}
+
+function Item({ item: i, onChange }: { item: PlanItem; onChange: (grams: number) => void }) {
+  const units = unitText(i.grams, i.unitG, i.unitName)
+  return (
+    <div className="meal-item">
+      <div>
+        <div style={{ fontWeight: 500 }}>{i.foodName}{units && <span className="muted small"> · {units}</span>}</div>
+        <div className="macro-pills" style={{ marginTop: 2 }}>
+          <span>{num(i.macros.kcal)} kcal</span><span className="p">Đ {num(i.macros.protein)}</span>
+          <span className="c">C {num(i.macros.carbs)}</span><span className="f">B {num(i.macros.fat)}</span>
+        </div>
+      </div>
+      <label className="row" style={{ gap: 4 }}>
+        <input className="gram-input tnum" inputMode="numeric" defaultValue={i.grams} key={`${i.id}-${i.grams}`}
+          aria-label={`Số gram ${i.foodName}`}
+          onBlur={(e) => {
+            const grams = Math.max(0, Math.min(2000, Number(e.target.value) || 0))
+            if (grams !== i.grams) onChange(grams)
+          }} />
+        <span className="muted small">g</span>
+      </label>
+    </div>
+  )
+}
+
+function Shopping({ items }: { items: ShoppingItem[] }) {
+  if (items.length === 0) return null
+  return (
+    <div className="card" style={{ marginTop: 12 }}>
+      <div className="card-head"><h2><ShoppingBasket size={18} style={{ verticalAlign: -3 }} /> Cần chuẩn bị cả tuần</h2></div>
+      {items.map((s) => {
+        const units = unitText(s.grams, s.unitG, s.unitName)
+        return (
+          <div className="row between list-row" key={s.foodName}>
+            <span>{s.foodName}</span>
+            <b className="tnum">{units ?? `${num(s.grams / 1000, 2)} kg`}</b>
+          </div>
+        )
+      })}
+      <p className="small muted" style={{ marginTop: 8 }}>
+        Khối lượng đã chín. Gạo sống bằng khoảng 2/5 lượng cơm, ức gà sống nặng hơn khi chín khoảng 1/3.
+      </p>
+    </div>
   )
 }

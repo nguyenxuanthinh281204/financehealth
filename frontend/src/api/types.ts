@@ -29,9 +29,17 @@ export interface Food {
 }
 
 export interface MacroTotals { kcal: number; protein: number; carbs: number; fat: number }
-export interface PlanItem { id: number; foodId: number; foodName: string; category: FoodCategory; grams: number; macros: MacroTotals }
+export interface PlanItem {
+  id: number; foodId: number; foodName: string; category: FoodCategory; grams: number
+  unitG: number | null; unitName: string | null; macros: MacroTotals
+}
 export interface MealView { meal: Meal; target: MacroTotals; total: MacroTotals; items: PlanItem[] }
 export interface Plan { id: number; date: string; target: MacroTotals; total: MacroTotals; meals: MealView[] }
+export interface ShoppingItem { foodName: string; category: FoodCategory; grams: number; unitG: number | null; unitName: string | null }
+export interface WeekMenu {
+  weekStart: string; weekEnd: string; created: boolean; canCreate: boolean
+  ingredients: string[]; days: Plan[]; shopping: ShoppingItem[]
+}
 
 export interface LineItem { name: string; quantity: number | null; price: number | null }
 export interface Expense {

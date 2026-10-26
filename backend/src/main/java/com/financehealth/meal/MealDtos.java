@@ -1,7 +1,6 @@
 package com.financehealth.meal;
 
 import com.financehealth.food.Food;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -11,11 +10,6 @@ import java.util.List;
 public final class MealDtos {
 
     private MealDtos() {}
-
-    public record SelectionRequest(@NotNull Long foodId, Food.Meal meal) {}
-
-    public record GenerateRequest(@NotNull LocalDate date,
-                                  @NotEmpty @Size(max = 30) List<@Valid SelectionRequest> selections) {}
 
     public record UpdateItemRequest(@NotNull @Min(0) @Max(2000) Integer grams) {}
 
@@ -27,9 +21,16 @@ public final class MealDtos {
         }
     }
 
-    public record ItemView(long id, long foodId, String foodName, Food.Category category, int grams, Macros macros) {}
+    public record ItemView(long id, long foodId, String foodName, Food.Category category, int grams,
+                           Integer unitG, String unitName, Macros macros) {}
 
     public record MealView(Food.Meal meal, Macros target, Macros total, List<ItemView> items) {}
 
     public record PlanView(long id, LocalDate date, Macros target, Macros total, List<MealView> meals) {}
+
+    /** Tổng khối lượng (đã luộc chín) một nguyên liệu cần cho cả tuần */
+    public record ShoppingItem(String foodName, Food.Category category, int grams, Integer unitG, String unitName) {}
+
+    public record WeekView(LocalDate weekStart, LocalDate weekEnd, boolean created, boolean canCreate,
+                           List<String> ingredients, List<PlanView> days, List<ShoppingItem> shopping) {}
 }

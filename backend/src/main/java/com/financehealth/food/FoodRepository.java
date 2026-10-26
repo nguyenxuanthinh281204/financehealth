@@ -16,5 +16,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     @Query("select f from Food f where f.id in :ids and (f.ownerId is null or f.ownerId = :userId)")
     List<Food> findVisibleByIds(@Param("userId") Long userId, @Param("ids") Collection<Long> ids);
 
+    List<Food> findByOwnerIdIsNullAndStapleKeyIsNotNull();
+
     Optional<Food> findByIdAndOwnerId(Long id, Long ownerId);
 }

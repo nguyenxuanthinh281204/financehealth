@@ -44,6 +44,14 @@ public class Food {
     @Column(name = "meal_tags", nullable = false)
     private String mealTags;
 
+    /** Mã nguyên liệu cố định của thực đơn tuần (EGG, CHICKEN...), null với món khác */
+    @Column(name = "staple_key")
+    private String stapleKey;
+
+    /** Khối lượng 1 đơn vị (1 quả trứng ~ 50g) để làm tròn và hiển thị, null = làm tròn 5g */
+    @Column(name = "unit_g") private Integer unitG;
+    @Column(name = "unit_name") private String unitName;
+
     protected Food() {}
 
     public Food(Long ownerId, String name, Category category, BigDecimal kcal, BigDecimal protein,
@@ -78,4 +86,14 @@ public class Food {
     public int getDefaultServingG() { return defaultServingG; }
     public int getMinG() { return minG; }
     public int getMaxG() { return maxG; }
+    public String getStapleKey() { return stapleKey; }
+    public Integer getUnitG() { return unitG; }
+    public String getUnitName() { return unitName; }
+
+    /** Đặt đơn vị làm tròn, dùng khi tạo món trong code/test. */
+    public Food withUnit(int grams, String name) {
+        this.unitG = grams;
+        this.unitName = name;
+        return this;
+    }
 }

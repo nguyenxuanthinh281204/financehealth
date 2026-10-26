@@ -6,7 +6,7 @@ Web app cá nhân (dùng được như app trên điện thoại) để quản l
 |---|---|
 | 💸 Chi tiêu | Nhập tay hoặc **chụp hóa đơn**, AI đọc cửa hàng, ngày, tổng tiền, từng món (hỗ trợ bill tiếng Việt). Lọc theo danh mục, xem theo tháng. |
 | ⚖️ Cơ thể & macro | Nhập giới tính, ngày sinh, chiều cao, cân nặng, mức tập, mục tiêu. Tính BMI (ngưỡng châu Á), BMR (Mifflin-St Jeor), TDEE, calo và protein/carb/fat mỗi ngày. Lịch sử cân nặng có biểu đồ. |
-| 🥗 Thực đơn 3 bữa | Chọn các món sẽ ăn (ví dụ ngày mai), hệ thống tự xếp vào sáng/trưa/tối và **tính số gram từng món** để tổng macro sát mục tiêu. Có thể ghim món vào bữa, sửa gram, thêm món riêng. |
+| 🥗 Thực đơn tuần | 8 nguyên liệu luộc cố định (trứng gà, ức gà, cơm trắng, xúc xích, cà rốt, bí đỏ, táo, bánh mì). **Mỗi tuần tạo một lần** cho cả 7 ngày (thứ Hai đến Chủ nhật): hệ thống xếp vào sáng/trưa/tối và **tính số gram từng món** cho sát macro, kèm danh sách cần mua cả tuần. Có thể sửa gram từng món. |
 | 📸 Khoảnh khắc | Như Locket: chụp ảnh hoặc quay **video tối đa 5 giây** ngay trong app, xem lại theo ngày. |
 | 📊 Tổng kết tháng | Tổng chi, so với tháng trước, chi theo danh mục và theo ngày, nơi chi nhiều nhất, cân nặng đầu/cuối tháng, số ngày có thực đơn, khoảnh khắc. |
 
@@ -79,8 +79,8 @@ cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
 | GET/PUT | `/api/body/profile` | Hồ sơ cơ thể + macro tính sẵn |
 | GET/POST/DELETE | `/api/body/weights` | Nhật ký cân nặng |
 | GET/POST/DELETE | `/api/foods` | Danh sách món (món hệ thống + món riêng) |
-| POST | `/api/meal-plans/generate` | Tạo thực đơn 3 bữa cho một ngày |
-| GET/DELETE | `/api/meal-plans/{date}` · PATCH `/api/meal-plans/items/{id}` | Xem, xóa, sửa gram |
+| GET/POST | `/api/meal-plans/week` | Xem tuần (`?date=`), tạo thực đơn tuần hiện tại (mỗi tuần 1 lần, lần 2 trả 409) |
+| GET | `/api/meal-plans/{date}` · PATCH `/api/meal-plans/items/{id}` | Xem một ngày, sửa gram |
 | GET/POST/PUT/DELETE | `/api/expenses` | Chi tiêu |
 | POST | `/api/expenses/scan-receipt` | Upload ảnh hóa đơn, trả thông tin đọc được |
 | GET/POST/DELETE | `/api/moments` | Ảnh / video 5 giây |

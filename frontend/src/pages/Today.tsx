@@ -73,7 +73,7 @@ export default function Today() {
                 {plan.data.meals.map((m) => `${MEALS[m.meal].emoji} ${m.items.map((i) => i.foodName).join(', ')}`).join(' · ')}
               </div>
             ) : (
-              <Link to="/thuc-don" className="btn secondary block" style={{ marginTop: 14 }}>Lên thực đơn 3 bữa</Link>
+              <Link to="/thuc-don" className="btn secondary block" style={{ marginTop: 14 }}>Tạo thực đơn tuần</Link>
             )}
           </div>
         )}

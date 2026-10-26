@@ -30,7 +30,7 @@ public class MealPlanner {
 
     public record PlannedItem(Meal meal, Food food, int grams) {}
 
-    private static final double W_KCAL = 1.0, W_PROTEIN = 1.5, W_CARBS = 1.0, W_FAT = 1.0;
+    private static final double W_KCAL = 2.0, W_PROTEIN = 1.5, W_CARBS = 1.0, W_FAT = 1.0;
     private static final double REGULARIZATION = 0.03;
     private static final int ITERATIONS = 300;
 
@@ -114,6 +114,30 @@ public class MealPlanner {
             g[i] = def[i];
         }
         double[] target = {t.kcal(), t.protein(), t.carbs(), t.fat()};
+        descend(a, target, lo, hi, def, g);
+        // Món đã chọn ít chất béo (đồ luộc) thì không thể đạt mục tiêu béo: chuyển phần calo
+        // béo còn thiếu sang tinh bột rồi giải lại, để tổng kcal vẫn đủ.
+        double fat = 0;
+        for (int i = 0; i < n; i++) fat += a[3][i] * g[i];
+        if (fat < target[3] * 0.9) {
+            target[2] += (target[3] - fat) * 9 / 4;
+            target[3] = fat;
+            descend(a, target, lo, hi, def, g);
+        }
+        int[] grams = new int[n];
+        for (int i = 0; i < n; i++) {
+            Integer unit = foods.get(i).getUnitG();
+            int step = unit != null && unit > 0 ? unit : 5;
+            int rounded = (int) (Math.round(g[i] / step) * step);
+            // Làm tròn theo đơn vị (quả trứng) có thể lệch khỏi khoảng; ép lại theo bội số của step
+            int min = (int) Math.ceil(lo[i] / step) * step, max = (int) Math.floor(hi[i] / step) * step;
+            grams[i] = max >= min ? Math.min(max, Math.max(min, rounded)) : (int) lo[i];
+        }
+        return grams;
+    }
+
+    private static void descend(double[][] a, double[] target, double[] lo, double[] hi, double[] def, double[] g) {
+        int n = g.length;
         double[] w = new double[4];
         double[] importance = {W_KCAL, W_PROTEIN, W_CARBS, W_FAT};
         for (int k = 0; k < 4; k++) {
@@ -144,12 +168,6 @@ public class MealPlanner {
                 }
             }
         }
-        int[] grams = new int[n];
-        for (int i = 0; i < n; i++) {
-            int rounded = (int) (Math.round(g[i] / 5.0) * 5);
-            grams[i] = (int) Math.min(hi[i], Math.max(lo[i], rounded));
-        }
-        return grams;
     }
 
     private static int priority(Category c) {

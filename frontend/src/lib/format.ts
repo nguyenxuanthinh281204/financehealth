@@ -32,6 +32,13 @@ export function shiftMonth(month: string, n: number) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
+/** Thứ Hai của tuần chứa ngày iso */
+export function weekStartOf(iso: string) {
+  const day = new Date(iso + 'T00:00:00').getDay() // 0 = Chủ nhật
+  return addDays(iso, -((day + 6) % 7))
+}
+export const WEEKDAYS_SHORT = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+
 const weekday = new Intl.DateTimeFormat('vi-VN', { weekday: 'long' })
 export function prettyDate(iso: string) {
   const today = isoDate()

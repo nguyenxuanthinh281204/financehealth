@@ -57,29 +57,28 @@ class ApiFlowIntegrationTest {
         int kcal = profile.at("/macros/kcal").asInt();
         assertThat(kcal).isGreaterThan(2000);
 
-        JsonNode foods = call(get("/api/foods").header("Authorization", bearer), 200);
-        assertThat(foods.size()).isGreaterThan(20);
-        StringBuilder sel = new StringBuilder();
-        for (JsonNode f : foods) {
-            String name = f.get("name").asText();
-            if (name.startsWith("Ức gà") || name.equals("Cơm trắng") || name.equals("Trứng gà")
-                    || name.startsWith("Yến mạch") || name.equals("Bông cải xanh")) {
-                if (!sel.isEmpty()) sel.append(',');
-                sel.append("{\"foodId\":").append(f.get("id").asLong()).append('}');
-            }
-        }
-        String tomorrow = LocalDate.now().plusDays(1).toString();
-        JsonNode plan = call(post("/api/meal-plans/generate").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"date\":\"" + tomorrow + "\",\"selections\":[" + sel + "]}"), 200);
-        assertThat(plan.get("meals").size()).isEqualTo(3);
-        double total = plan.at("/total/kcal").asDouble();
-        assertThat(total).isBetween(kcal * 0.85, kcal * 1.15);
+        // Thực đơn tuần: chưa tạo thì được tạo, tạo rồi thì báo 409
+        JsonNode week = call(get("/api/meal-plans/week").header("Authorization", bearer), 200);
+        assertThat(week.get("created").asBoolean()).isFalse();
+        assertThat(week.get("canCreate").asBoolean()).isTrue();
+        assertThat(week.get("ingredients").size()).isEqualTo(8);
 
+        week = call(post("/api/meal-plans/week").header("Authorization", bearer), 200);
+        assertThat(week.get("created").asBoolean()).isTrue();
+        assertThat(week.get("days").size()).isEqualTo(7);
+        assertThat(week.get("shopping").size()).isEqualTo(8);
+        for (JsonNode day : week.get("days")) {
+            assertThat(day.get("meals").size()).isEqualTo(3);
+            assertThat(day.at("/total/kcal").asDouble()).isBetween(kcal * 0.85, kcal * 1.15);
+        }
+        call(post("/api/meal-plans/week").header("Authorization", bearer), 409);
+
+        String today0 = LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh")).toString();
+        JsonNode plan = call(get("/api/meal-plans/" + today0).header("Authorization", bearer), 200);
         long itemId = plan.at("/meals/1/items/0/id").asLong();
         JsonNode edited = call(patch("/api/meal-plans/items/" + itemId).header("Authorization", bearer)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"grams\":100}"), 200);
         assertThat(edited.at("/meals/1/items/0/grams").asInt()).isEqualTo(100);
-        call(get("/api/meal-plans/" + tomorrow).header("Authorization", bearer), 200);
 
         // Chi tiêu
         String today = LocalDate.now().toString();

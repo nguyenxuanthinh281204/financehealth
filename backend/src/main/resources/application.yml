@@ -57,8 +57,14 @@ app:
     s3-path-style: ${S3_PATH_STYLE:true}
     signed-url-minutes: 60
   receipt:
-    # Để trống thì tắt quét hóa đơn, người dùng vẫn nhập tay được
+    # anthropic hoặc gemini. Thiếu key/project thì tắt quét hóa đơn, người dùng vẫn nhập tay được
+    provider: ${RECEIPT_PROVIDER:anthropic}
     anthropic-api-key: ${ANTHROPIC_API_KEY:}
     model: ${RECEIPT_MODEL:claude-opus-5-5}
+    gemini:
+      # Xác thực bằng file service account trong GOOGLE_APPLICATION_CREDENTIALS
+      project: ${GCP_PROJECT_ID:}
+      location: ${GCP_LOCATION:global}
+      model: ${GEMINI_MODEL:gemini-3.6-flash}
   moments:
     max-video-seconds: 5.5

@@ -22,7 +22,11 @@ public record AppProperties(
                           String s3Bucket, String s3Region, long signedUrlMinutes,
                           String s3Endpoint, String s3AccessKey, String s3SecretKey, boolean s3PathStyle) {}
 
-    public record Receipt(String anthropicApiKey, String model) {}
+    /** provider: anthropic (mặc định) hoặc gemini. */
+    public record Receipt(String provider, String anthropicApiKey, String model, Gemini gemini) {}
+
+    /** Gemini trên Vertex AI; location "global" chạy được mọi model mới. */
+    public record Gemini(String project, String location, String model) {}
 
     public record Moments(double maxVideoSeconds) {}
 }

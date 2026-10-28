@@ -16,7 +16,7 @@ Web app cá nhân (dùng được như app trên điện thoại) để quản l
 - **Backend**: Spring Boot 3.5 (Java 21), Spring Security + JWT, JPA, Flyway.
 - **Database**: PostgreSQL 16.
 - **Lưu file**: Amazon S3 (hoặc ổ đĩa local khi dev).
-- **Quét hóa đơn**: Claude vision qua Anthropic Java SDK, trả về JSON có cấu trúc.
+- **Quét hóa đơn**: Claude vision (Anthropic Java SDK) hoặc Gemini trên Vertex AI (Google Gen AI SDK), trả về JSON có cấu trúc.
 
 ```
 backend/    Spring Boot API
@@ -68,8 +68,12 @@ cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
 | `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | trống | Object Storage chuẩn S3 ngoài AWS (BizFly, VNG, FPT...). Để trống khi dùng AWS S3 với IAM role |
 | `S3_PATH_STYLE` | `true` | Dùng địa chỉ dạng `endpoint/bucket/key` (chỉ áp dụng khi có `S3_ENDPOINT`) |
 | `PUBLIC_BASE_URL` | `http://localhost:8080` | URL công khai của API (ký link file khi lưu local) |
-| `ANTHROPIC_API_KEY` | trống | Bật quét hóa đơn bằng AI |
-| `RECEIPT_MODEL` | `claude-opus-5-5` | Model dùng để đọc hóa đơn |
+| `RECEIPT_PROVIDER` | `anthropic` | AI đọc hóa đơn: `anthropic` hoặc `gemini` |
+| `ANTHROPIC_API_KEY` | trống | Bật quét hóa đơn bằng Claude |
+| `RECEIPT_MODEL` | `claude-opus-5-5` | Model Claude dùng để đọc hóa đơn |
+| `GCP_PROJECT_ID`, `GCP_LOCATION` | trống, `global` | Project Google Cloud cho Gemini trên Vertex AI |
+| `GEMINI_MODEL` | `gemini-3.6-flash` | Model Gemini dùng để đọc hóa đơn |
+| `GOOGLE_APPLICATION_CREDENTIALS` | trống | Đường dẫn file JSON của service account (role Vertex AI User) |
 
 ## API chính
 

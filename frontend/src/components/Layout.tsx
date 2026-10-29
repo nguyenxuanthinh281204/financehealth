@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { Camera, HeartPulse, Home, ListChecks, ListTodo, LogOut, PieChart, Utensils, Wallet } from 'lucide-react'
+import { Camera, HeartPulse, Home, ListChecks, ListTodo, LogOut, PieChart, Settings, Utensils, Wallet } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { Loading } from './ui'
 
@@ -27,6 +27,7 @@ export default function Layout() {
         {NAV.slice(4).map((n) => <Item key={n.to} {...n} />)}
         <div className="spacer" />
         <div className="small muted" style={{ padding: '0 12px 8px' }}>{user?.displayName}</div>
+        <Item to="/cai-dat" label="Cài đặt" icon={Settings} />
         <a href="#" onClick={(e) => { e.preventDefault(); logout() }}><LogOut size={20} /> Đăng xuất</a>
       </aside>
       <main className="main"><Suspense fallback={<Loading />}><Outlet /></Suspense></main>

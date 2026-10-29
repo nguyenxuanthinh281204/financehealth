@@ -1,5 +1,7 @@
 package com.financehealth.config;
 
+import com.financehealth.auth.AuthService;
+import com.financehealth.auth.UserRepository;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,9 +11,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -62,8 +70,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtDecoder jwtDecoder(SecretKey jwtKey) {
-        return NimbusJwtDecoder.withSecretKey(jwtKey).macAlgorithm(MacAlgorithm.HS256).build();
+    JwtDecoder jwtDecoder(SecretKey jwtKey, UserRepository users) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(jwtKey).macAlgorithm(MacAlgorithm.HS256).build();
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(JwtValidators.createDefault(), tokenVersionValidator(users)));
+        return decoder;
+    }
+
+    /** Token phát hành trước lần đổi mật khẩu gần nhất bị từ chối (token cũ không có claim thì coi là version 0). */
+    private static OAuth2TokenValidator<Jwt> tokenVersionValidator(UserRepository users) {
+        OAuth2Error revoked = new OAuth2Error("invalid_token", "Phiên đăng nhập đã hết hiệu lực", null);
+        return jwt -> {
+            Object claim = jwt.getClaims().get(AuthService.TOKEN_VERSION_CLAIM);
+            int version = claim instanceof Number n ? n.intValue() : 0;
+            boolean ok = users.findTokenVersion(Long.parseLong(jwt.getSubject()))
+                    .map(current -> current == version)
+                    .orElse(false);
+            return ok ? OAuth2TokenValidatorResult.success() : OAuth2TokenValidatorResult.failure(revoked);
+        };
     }
 
     @Bean

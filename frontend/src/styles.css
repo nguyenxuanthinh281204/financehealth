@@ -52,6 +52,28 @@
   color-scheme: dark;
 }
 
+/* Màu chủ đạo (Cài đặt). Mặc định green dùng biến ở trên. */
+:root[data-accent="teal"] { --primary: #0f7480; --primary-soft: #d5eef0; --kcal: #0f7480; }
+:root[data-accent="blue"] { --primary: #2f5fd0; --primary-soft: #dde6fb; --kcal: #2f5fd0; }
+:root[data-accent="violet"] { --primary: #6a4bc4; --primary-soft: #e8e1fa; --kcal: #6a4bc4; }
+:root[data-accent="pink"] { --primary: #c23a78; --primary-soft: #fbe0ec; --kcal: #c23a78; }
+:root[data-accent="orange"] { --primary: #b85a14; --primary-soft: #fbe7d6; --kcal: #b85a14; }
+:root[data-accent="yellow"] { --primary: #946500; --primary-soft: #f8ecc9; --kcal: #946500; }
+@media (prefers-color-scheme: dark) {
+  :root[data-accent="teal"]:not([data-theme="light"]) { --primary: #3fc1cc; --primary-soft: #163a3e; --primary-ink: #06292c; --kcal: #3fc1cc; }
+  :root[data-accent="blue"]:not([data-theme="light"]) { --primary: #7aa0ff; --primary-soft: #1e2b4d; --primary-ink: #0b1633; --kcal: #7aa0ff; }
+  :root[data-accent="violet"]:not([data-theme="light"]) { --primary: #a98cff; --primary-soft: #2d2550; --primary-ink: #1a1236; --kcal: #a98cff; }
+  :root[data-accent="pink"]:not([data-theme="light"]) { --primary: #f27aae; --primary-soft: #4a2134; --primary-ink: #2e0c1c; --kcal: #f27aae; }
+  :root[data-accent="orange"]:not([data-theme="light"]) { --primary: #f5a05a; --primary-soft: #45301c; --primary-ink: #2b1606; --kcal: #f5a05a; }
+  :root[data-accent="yellow"]:not([data-theme="light"]) { --primary: #f0c24b; --primary-soft: #3f331a; --primary-ink: #2a1e02; --kcal: #f0c24b; }
+}
+:root[data-theme="dark"][data-accent="teal"] { --primary: #3fc1cc; --primary-soft: #163a3e; --primary-ink: #06292c; --kcal: #3fc1cc; }
+:root[data-theme="dark"][data-accent="blue"] { --primary: #7aa0ff; --primary-soft: #1e2b4d; --primary-ink: #0b1633; --kcal: #7aa0ff; }
+:root[data-theme="dark"][data-accent="violet"] { --primary: #a98cff; --primary-soft: #2d2550; --primary-ink: #1a1236; --kcal: #a98cff; }
+:root[data-theme="dark"][data-accent="pink"] { --primary: #f27aae; --primary-soft: #4a2134; --primary-ink: #2e0c1c; --kcal: #f27aae; }
+:root[data-theme="dark"][data-accent="orange"] { --primary: #f5a05a; --primary-soft: #45301c; --primary-ink: #2b1606; --kcal: #f5a05a; }
+:root[data-theme="dark"][data-accent="yellow"] { --primary: #f0c24b; --primary-soft: #3f331a; --primary-ink: #2a1e02; --kcal: #f0c24b; }
+
 * { box-sizing: border-box; }
 html, body, #root { min-height: 100%; }
 body {
@@ -153,7 +175,7 @@ h3 { font-size: 15px; font-weight: 600; }
 .fab {
   position: fixed; right: 18px; bottom: calc(var(--nav-h) + var(--safe-b) + 18px); z-index: 25;
   width: 56px; height: 56px; border-radius: 18px; border: none; display: grid; place-items: center;
-  background: var(--primary); color: var(--primary-ink); box-shadow: 0 10px 30px rgba(29, 107, 82, .35); cursor: pointer;
+  background: var(--primary); color: var(--primary-ink); box-shadow: 0 10px 30px color-mix(in srgb, var(--primary) 35%, transparent); cursor: pointer;
 }
 @media (min-width: 900px) { .fab { bottom: 32px; right: 32px; } }
 
@@ -279,7 +301,7 @@ textarea.input { min-height: 80px; resize: vertical; }
 .macro-pills .p { color: var(--protein); } .macro-pills .c { color: var(--carbs); } .macro-pills .f { color: var(--fat); }
 .receipt-thumb { width: 100%; max-height: 220px; object-fit: contain; border-radius: 14px; background: var(--surface-2); }
 .hero {
-  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, #0b3b2c));
+  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, #000));
   color: #fff; border: none;
 }
 .hero .muted { color: rgba(255,255,255,.75); }
@@ -381,5 +403,24 @@ textarea.input { min-height: 80px; resize: vertical; }
   box-shadow: 0 10px 30px rgba(0, 0, 0, .25); animation: slide .2s ease;
 }
 .toast span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.toast button { background: none; border: none; color: #8fe0bf; font-weight: 600; cursor: pointer; padding: 4px; flex: none; }
+.toast button { background: none; border: none; color: color-mix(in srgb, var(--primary) 45%, #fff); font-weight: 600; cursor: pointer; padding: 4px; flex: none; }
 @media (min-width: 900px) { .toast { bottom: 32px; } }
+
+/* Cài đặt */
+.settings-section > h2 { margin-bottom: 4px; }
+.settings-section .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+.swatches { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0 6px; border-radius: 14px;
+  border: 1px solid transparent; background: none; cursor: pointer; font-size: 11px; color: var(--muted);
+}
+.swatch i {
+  width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08); transition: transform .15s ease;
+}
+.swatch:active i { transform: scale(.92); }
+.swatch.on { border-color: var(--border); background: var(--surface-2); color: var(--text); font-weight: 600; }
+.swatch:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.pw-toggle { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+.saved-hint { display: inline-flex; align-items: center; gap: 4px; color: var(--primary); font-size: 13px; font-weight: 500; }
+@media (max-width: 420px) { .swatch span { display: none; } .swatch { padding: 6px 0; } }

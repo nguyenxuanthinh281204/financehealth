@@ -228,7 +228,7 @@ textarea.input { min-height: 80px; resize: vertical; }
 /* Auth */
 .auth { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
 .auth-card { width: 100%; max-width: 400px; }
-.auth .logo { width: 56px; height: 56px; border-radius: 16px; margin-bottom: 16px; }
+.auth .logo { width: 64px; height: 64px; margin-bottom: 16px; }
 
 /* Moments */
 .moment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }

@@ -150,6 +150,26 @@ export default function Summary() {
             </div>
           </div>
 
+          {s.habits.items.length > 0 && (
+            <div className="card" style={{ marginTop: 12 }}>
+              <div className="card-head">
+                <h2>Thói quen trong tháng</h2>
+                {s.habits.percent != null && <span className="habit-rate tnum">{s.habits.percent}%</span>}
+              </div>
+              <div className="stack">
+                {s.habits.items.map((h) => (
+                  <div className="habit-month-row" key={h.id}>
+                    <span className="grow">{h.emoji} {h.name}</span>
+                    <div className="bar"><i style={{ width: `${h.percent ?? 0}%` }} /></div>
+                    <span className="small tnum muted">
+                      {h.total === 0 ? '—' : <><b style={{ color: 'var(--text)' }}>{h.done}</b>/{h.total} {h.frequency === 'WEEKLY' ? 'tuần' : 'ngày'}</>}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {s.moments.previewUrls.length > 0 && (
             <div className="card" style={{ marginTop: 12 }}>
               <h2 style={{ marginBottom: 10 }}>Khoảnh khắc trong tháng</h2>

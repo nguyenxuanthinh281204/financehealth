@@ -81,7 +81,7 @@ class ApiFlowIntegrationTest {
         assertThat(edited.at("/meals/1/items/0/grams").asInt()).isEqualTo(100);
 
         // Chi tiêu
-        String today = LocalDate.now().toString();
+        String today = today0;
         call(post("/api/expenses").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"spentOn\":\"" + today + "\",\"amount\":45000,\"category\":\"FOOD\",\"merchant\":\"Phở Hà Nội\"}"), 200);
         call(post("/api/expenses").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
@@ -108,6 +108,49 @@ class ApiFlowIntegrationTest {
                 .file(new MockMultipartFile("file", "v.webm", "video/webm", new byte[]{1, 2, 3}))
                 .param("takenOn", today).param("durationSec", "8").header("Authorization", bearer), 400);
 
+        // Thói quen: mặc định tự tạo, chi tiêu/khoảnh khắc/cân tự đánh dấu từ dữ liệu ở trên
+        JsonNode habits = call(get("/api/habits").header("Authorization", bearer), 200);
+        assertThat(habits.get("habits").size()).isEqualTo(4);
+        assertThat(habits.at("/habits/0/history").size()).isBetween(176, 182);
+        JsonNode meal = null;
+        for (JsonNode h : habits.get("habits")) {
+            switch (h.get("kind").asText()) {
+                case "EXPENSE", "MOMENT", "WEIGHT" -> {
+                    assertThat(h.get("auto").asBoolean()).isTrue();
+                    assertThat(h.get("done").asBoolean()).isTrue();
+                    assertThat(h.get("currentStreak").asInt()).isEqualTo(1);
+                }
+                case "MEAL" -> meal = h;
+                default -> throw new AssertionError(h);
+            }
+        }
+        assertThat(meal.get("done").asBoolean()).isFalse();
+        long mealId = meal.get("id").asLong();
+        call(put("/api/habits/" + habits.at("/habits/0/id").asLong() + "/checks").header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"date\":\"" + today0 + "\",\"slot\":0,\"done\":true}"), 400);
+        for (int slot = 1; slot <= 3; slot++) {
+            meal = call(put("/api/habits/" + mealId + "/checks").header("Authorization", bearer)
+                    .contentType(MediaType.APPLICATION_JSON).content("{\"date\":\"" + today0 + "\",\"slot\":" + slot + ",\"done\":true}"), 200);
+        }
+        assertThat(meal.get("done").asBoolean()).isTrue();
+        assertThat(meal.get("todaySlots").size()).isEqualTo(3);
+
+        JsonNode custom = call(post("/api/habits").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Uống 2 lít nước\",\"emoji\":\"💧\"}"), 200);
+        long customId = custom.get("id").asLong();
+        assertThat(custom.get("frequency").asText()).isEqualTo("DAILY");
+        custom = call(put("/api/habits/" + customId + "/checks").header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"date\":\"" + today0 + "\",\"slot\":0,\"done\":true}"), 200);
+        assertThat(custom.get("currentStreak").asInt()).isEqualTo(1);
+        call(put("/api/habits/" + customId + "/checks").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"date\":\"" + LocalDate.parse(today0).plusDays(1) + "\",\"slot\":0,\"done\":true}"), 400);
+        call(delete("/api/habits/" + mealId).header("Authorization", bearer), 400);
+        JsonNode archived = call(patch("/api/habits/" + mealId).header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"archived\":true}"), 200);
+        assertThat(archived.get("archived").asBoolean()).isTrue();
+        call(patch("/api/habits/" + mealId).header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"archived\":false}"), 200);
+
         // Tổng kết tháng
         JsonNode summary = call(get("/api/summary/monthly").param("month", YearMonth.now().toString())
                 .header("Authorization", bearer), 200);
@@ -115,5 +158,10 @@ class ApiFlowIntegrationTest {
         assertThat(summary.at("/spending/byCategory/0/category").asText()).isEqualTo("GROCERIES");
         assertThat(summary.at("/weight/end").asDouble()).isEqualTo(70.0);
         assertThat(summary.at("/moments/count").asInt()).isEqualTo(1);
+        assertThat(summary.at("/habits/items").size()).isEqualTo(5);
+        assertThat(summary.at("/habits/percent").asInt()).isEqualTo(100);
+
+        call(delete("/api/habits/" + customId).header("Authorization", bearer), 204);
+        assertThat(call(get("/api/habits").header("Authorization", bearer), 200).get("habits").size()).isEqualTo(4);
     }
 }

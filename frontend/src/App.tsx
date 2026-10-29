@@ -11,6 +11,7 @@ const Body = lazy(() => import('./pages/Body'))
 const MealPlanner = lazy(() => import('./pages/MealPlanner'))
 const Moments = lazy(() => import('./pages/Moments'))
 const Summary = lazy(() => import('./pages/Summary'))
+const Habits = lazy(() => import('./pages/Habits'))
 
 export default function App() {
   const { user, loading } = useAuth()
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="co-the" element={<Body />} />
         <Route path="thuc-don" element={<MealPlanner />} />
         <Route path="khoanh-khac" element={<Moments />} />
+        <Route path="thoi-quen" element={<Habits />} />
         <Route path="tong-ket" element={<Summary />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

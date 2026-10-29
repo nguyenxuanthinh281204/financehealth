@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { Camera, HeartPulse, Home, LogOut, PieChart, Utensils, Wallet } from 'lucide-react'
+import { Camera, HeartPulse, Home, ListChecks, LogOut, PieChart, Utensils, Wallet } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { Loading } from './ui'
 
@@ -20,7 +20,9 @@ export default function Layout() {
         <div className="brand"><img src="/icon.svg" width={32} height={32} alt="" /> FinanceHealth</div>
         {NAV.slice(0, 2).map((n) => <Item key={n.to} {...n} />)}
         <Item to="/co-the" label="Cơ thể & macro" icon={HeartPulse} />
-        {NAV.slice(2).map((n) => <Item key={n.to} {...n} />)}
+        {NAV.slice(2, 4).map((n) => <Item key={n.to} {...n} />)}
+        <Item to="/thoi-quen" label="Thói quen" icon={ListChecks} />
+        {NAV.slice(4).map((n) => <Item key={n.to} {...n} />)}
         <div className="spacer" />
         <div className="small muted" style={{ padding: '0 12px 8px' }}>{user?.displayName}</div>
         <a href="#" onClick={(e) => { e.preventDefault(); logout() }}><LogOut size={20} /> Đăng xuất</a>

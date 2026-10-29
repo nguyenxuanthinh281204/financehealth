@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Camera, ChevronRight, Plus, Scale, UserRound } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
-import { useExpenses, useMoments, usePlan, useProfile } from '../lib/queries'
+import { useExpenses, useHabits, useMoments, usePlan, useProfile } from '../lib/queries'
 import { EXPENSE_CATEGORIES, MEALS, isoDate, money, num, prettyDate } from '../lib/format'
 import { Empty, MacroBar, Ring } from '../components/ui'
+import { HabitChecklist } from '../components/habits'
+import type { HabitKind } from '../api/types'
 import ExpenseSheet from './expenses/ExpenseSheet'
 import CameraSheet from './moments/CameraSheet'
 import WeightSheet from './body/WeightSheet'
@@ -24,11 +26,16 @@ export default function Today() {
   const plan = usePlan(today)
   const expenses = useExpenses(today, today)
   const moments = useMoments(today, today)
+  const habits = useHabits()
   const [sheet, setSheet] = useState<'expense' | 'camera' | 'weight' | null>(null)
 
   const macros = profile.data?.macros
   const spent = (expenses.data ?? []).reduce((s, e) => s + e.amount, 0)
   const total = plan.data?.total
+  const activeHabits = habits.data?.habits.filter((h) => !h.archived) ?? []
+  const habitsDone = activeHabits.filter((h) => h.done).length
+  const openForHabit = (kind: HabitKind) =>
+    setSheet(kind === 'EXPENSE' ? 'expense' : kind === 'MOMENT' ? 'camera' : 'weight')
 
   return (
     <>
@@ -51,6 +58,20 @@ export default function Today() {
       )}
 
       <div className="grid grid-md-2">
+        {activeHabits.length > 0 && (
+          <div className="card habits-card">
+            <div className="card-head" style={{ marginBottom: 4 }}>
+              <h2>Thói quen hôm nay</h2>
+              <Link to="/thoi-quen" className="small">Chi tiết <ChevronRight size={14} style={{ verticalAlign: -2 }} /></Link>
+            </div>
+            <div className="row" style={{ gap: 10, marginBottom: 4 }}>
+              <div className="bar grow"><i style={{ width: `${(habitsDone / activeHabits.length) * 100}%` }} /></div>
+              <span className="small tnum muted"><b style={{ color: 'var(--text)' }}>{habitsDone}</b>/{activeHabits.length}</span>
+            </div>
+            <HabitChecklist habits={activeHabits} today={habits.data!.today} onAuto={openForHabit} />
+          </div>
+        )}
+
         {macros && (
           <div className="card">
             <div className="card-head">

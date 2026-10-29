@@ -29,4 +29,14 @@ public class AuthController {
     public UserView me() {
         return auth.me(CurrentUser.id());
     }
+
+    @PatchMapping("/me")
+    public UserView updateSettings(@Valid @RequestBody UpdateSettingsRequest req) {
+        return auth.updateSettings(CurrentUser.id(), req);
+    }
+
+    @PostMapping("/me/password")
+    public AuthResponse changePassword(@Valid @RequestBody ChangePasswordRequest req) {
+        return auth.changePassword(CurrentUser.id(), req);
+    }
 }

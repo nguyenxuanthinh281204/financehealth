@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Camera, ChevronRight, Plus, Scale, UserRound } from 'lucide-react'
+import { Camera, ChevronRight, Plus, Scale, Settings } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { useExpenses, useHabits, useMoments, usePlan, useProfile } from '../lib/queries'
 import { EXPENSE_CATEGORIES, MEALS, isoDate, money, num, prettyDate } from '../lib/format'
@@ -45,7 +45,7 @@ export default function Today() {
           <div className="sub">{prettyDate(today)}</div>
           <h1>{greeting()}, {user?.displayName.split(' ').slice(-1)[0]} 👋</h1>
         </div>
-        <Link to="/co-the" className="icon-btn" aria-label="Cơ thể & tài khoản"><UserRound size={20} /></Link>
+        <Link to="/cai-dat" className="icon-btn" aria-label="Cài đặt"><Settings size={20} /></Link>
       </div>
 
       {profile.data === null && (

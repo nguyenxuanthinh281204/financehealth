@@ -6,7 +6,9 @@ export type FoodCategory = 'PROTEIN' | 'CARB' | 'FAT' | 'VEGGIE' | 'FRUIT' | 'DA
 export type ExpenseCategory =
   | 'FOOD' | 'GROCERIES' | 'TRANSPORT' | 'SHOPPING' | 'BILLS' | 'HEALTH' | 'ENTERTAINMENT' | 'EDUCATION' | 'OTHER'
 
-export interface User { id: number; email: string; displayName: string }
+export type ThemeMode = 'SYSTEM' | 'LIGHT' | 'DARK'
+export type AccentColor = 'green' | 'teal' | 'blue' | 'violet' | 'pink' | 'orange' | 'yellow'
+export interface User { id: number; email: string; displayName: string; themeMode: ThemeMode; accentColor: AccentColor }
 export interface AuthResponse { token: string; user: User }
 
 export interface Macros {

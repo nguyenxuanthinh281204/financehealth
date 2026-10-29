@@ -28,7 +28,7 @@ export default function Login() {
   return (
     <div className="auth">
       <div className="auth-card">
-        <img className="logo" src="/icon.svg" alt="" />
+        <img className="logo" src="/icon-192.png" alt="" />
         <h1>{mode === 'login' ? 'Chào mừng trở lại' : 'Tạo tài khoản'}</h1>
         <p className="muted" style={{ marginTop: 6 }}>Theo dõi chi tiêu, cân nặng, bữa ăn và khoảnh khắc mỗi ngày.</p>
         <div className="card" style={{ marginTop: 20 }}>

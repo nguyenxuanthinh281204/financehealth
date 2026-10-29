@@ -1,4 +1,4 @@
-# Deploy FinanceHealth lên NAT VPS (qua Cloudflare Tunnel)
+# Deploy Hatchi lên NAT VPS (qua Cloudflare Tunnel)
 
 NAT VPS rẻ nhưng **không có IP riêng** và **không mở được cổng 80/443**: nhiều máy dùng chung một IP, mỗi máy chỉ được chuyển tiếp vài cổng (ví dụ 20 cổng để SSH). Vì vậy không tự cấp HTTPS được như VPS thường.
 

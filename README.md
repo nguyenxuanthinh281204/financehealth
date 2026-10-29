@@ -1,4 +1,4 @@
-# FinanceHealth
+# Hatchi
 
 Web app cá nhân (dùng được như app trên điện thoại) để quản lý **chi tiêu** và **sức khỏe** mỗi ngày.
 

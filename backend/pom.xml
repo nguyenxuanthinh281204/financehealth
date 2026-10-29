@@ -15,7 +15,7 @@
     <artifactId>financehealth-api</artifactId>
     <version>1.0.0</version>
     <name>financehealth-api</name>
-    <description>FinanceHealth: chi tiêu, cơ thể, thực đơn, khoảnh khắc</description>
+    <description>Hatchi: chi tiêu, cơ thể, thực đơn, khoảnh khắc</description>
 
     <properties>
         <java.version>21</java.version>

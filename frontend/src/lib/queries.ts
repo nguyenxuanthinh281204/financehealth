@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
-import type { Expense, HabitOverview, Moment, MonthlySummary, Plan, Profile, WeekMenu, WeightLog } from '../api/types'
+import type { Expense, HabitOverview, Moment, MonthlySummary, Plan, Profile, TaskBoard, WeekMenu, WeightLog } from '../api/types'
 
 export const keys = {
   profile: ['profile'] as const,
@@ -11,6 +11,7 @@ export const keys = {
   moments: (from: string, to: string) => ['moments', from, to] as const,
   summary: (month: string) => ['summary', month] as const,
   habits: ['habits'] as const,
+  tasks: ['tasks'] as const,
 }
 
 export const useProfile = () => useQuery({ queryKey: keys.profile, queryFn: () => api.get<Profile | null>('/api/body/profile') })
@@ -34,3 +35,5 @@ export const useSummary = (month: string) =>
   useQuery({ queryKey: keys.summary(month), queryFn: () => api.get<MonthlySummary>(`/api/summary/monthly?month=${month}`) })
 
 export const useHabits = () => useQuery({ queryKey: keys.habits, queryFn: () => api.get<HabitOverview>('/api/habits') })
+
+export const useTasks = () => useQuery({ queryKey: keys.tasks, queryFn: () => api.get<TaskBoard>('/api/tasks') })

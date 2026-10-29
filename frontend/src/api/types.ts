@@ -93,3 +93,14 @@ export interface MonthlySummary {
     items: { id: number; name: string; emoji: string; frequency: HabitFrequency; done: number; total: number; percent: number | null }[]
   }
 }
+
+export interface TaskListInfo { id: number; name: string }
+/** Trường null không có trong JSON (máy chủ bỏ qua giá trị null) */
+export interface Task {
+  id: number; listId: number; parentId?: number; title: string; notes?: string; dueDate?: string
+  starred: boolean; completed: boolean; completedAt?: string; position: number
+}
+export interface TaskBoard { today: string; lists: TaskListInfo[]; tasks: Task[] }
+export interface TaskInput {
+  title?: string; notes?: string; dueDate?: string; clearDue?: boolean; starred?: boolean; completed?: boolean; listId?: number
+}

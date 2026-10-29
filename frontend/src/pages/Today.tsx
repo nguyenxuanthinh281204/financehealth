@@ -6,6 +6,7 @@ import { useExpenses, useHabits, useMoments, usePlan, useProfile } from '../lib/
 import { EXPENSE_CATEGORIES, MEALS, isoDate, money, num, prettyDate } from '../lib/format'
 import { Empty, MacroBar, Ring } from '../components/ui'
 import { HabitChecklist } from '../components/habits'
+import { TodayTasksCard } from '../components/tasks'
 import type { HabitKind } from '../api/types'
 import ExpenseSheet from './expenses/ExpenseSheet'
 import CameraSheet from './moments/CameraSheet'
@@ -71,6 +72,8 @@ export default function Today() {
             <HabitChecklist habits={activeHabits} today={habits.data!.today} onAuto={openForHabit} />
           </div>
         )}
+
+        <TodayTasksCard />
 
         {macros && (
           <div className="card">

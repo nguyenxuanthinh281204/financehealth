@@ -4,7 +4,7 @@ NAT VPS rẻ nhưng **không có IP riêng** và **không mở được cổng 8
 
 Cách giải: **Cloudflare Tunnel** (miễn phí). Trên VPS chạy thêm một container `cloudflared`, container này chủ động kết nối ra Cloudflare. Người dùng vào `https://ten-mien-cua-ban.com`, Cloudflare lo HTTPS rồi chuyển yêu cầu vào VPS qua kết nối đó. **Không cần mở cổng nào.**
 
-Thay `ten-mien-cua-ban.com` bằng tên miền thật của bạn. Có VPS thường (IP riêng) thì dùng [DEPLOY-VN.md](DEPLOY-VN.md), đơn giản hơn.
+Thay `ten-mien-cua-ban.com` bằng tên miền thật của bạn.
 
 ## 0. Mô hình và yêu cầu
 
@@ -146,7 +146,7 @@ Với `JAVA_OPTS` mặc định, API dùng khoảng 375 MB RAM (đã đo khi ch�
    S3_PATH_STYLE=true
    ```
 
-**Hoặc Object Storage của nhà cung cấp Việt Nam** (BizFly, VNG, FPT): cách điền giống mục 6 trong [DEPLOY-VN.md](DEPLOY-VN.md).
+**Hoặc Object Storage của nhà cung cấp Việt Nam** (BizFly, VNG, FPT): tạo bucket private và Access key/Secret key trong trang quản trị của họ, điền như trên nhưng `S3_ENDPOINT` là endpoint S3 họ cung cấp, `AWS_REGION` là region họ ghi (không có thì để `hn`).
 
 Rồi `docker compose up -d` để áp dụng. Chọn cách lưu ngay từ đầu, vì file đã lưu trên ổ VPS không tự chuyển sang.
 
@@ -165,7 +165,15 @@ Script sao lưu database (và ảnh/video nếu đang lưu trên ổ VPS) vào `
 scp -P <CONG_SSH> -r root@<IP_NAT>:~/backups ./financehealth-backups
 ```
 
-Khôi phục: xem lệnh ở cuối mục 5 trong [DEPLOY-VN.md](DEPLOY-VN.md), chạy trong thư mục `deploy-natvps`.
+Khôi phục database từ một bản sao lưu (ghi đè dữ liệu hiện tại):
+
+```bash
+cd ~/financehealth/deploy-natvps
+docker compose stop api
+docker compose exec -T db psql -U financehealth -d financehealth -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+gunzip -c ~/backups/db-2026-10-24.sql.gz | docker compose exec -T db psql -U financehealth financehealth
+docker compose start api
+```
 
 ---
 
@@ -215,7 +223,7 @@ Chọn một trong hai bằng biến `RECEIPT_PROVIDER` trong `.env`. Không c�
 
 | `RECEIPT_PROVIDER` | Dịch vụ | Chi phí |
 |---|---|---|
-| `anthropic` (mặc định) | Claude, cần `ANTHROPIC_API_KEY` (xem [DEPLOY-VN.md mục 7](DEPLOY-VN.md)) | Nạp credit trước, khoảng 1.000đ/lần quét |
+| `anthropic` (mặc định) | Claude, cần `ANTHROPIC_API_KEY` (tạo tại [console.anthropic.com](https://console.anthropic.com/)) | Nạp credit trước, khoảng 1.000đ/lần quét |
 | `gemini` | Gemini trên **Vertex AI** (Google Cloud) | Trừ vào credit dùng thử 300 USD (90 ngày), sau đó ước tính dưới 100đ/lần quét |
 
 > Chỉ **Vertex AI** mới trừ vào credit dùng thử. Key tạo ở Google AI Studio (Gemini API) **không** dùng credit này, nên app chỉ hỗ trợ Vertex AI.

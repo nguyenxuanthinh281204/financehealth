@@ -1,4 +1,4 @@
-# Build web tĩnh, phục vụ bằng Caddy (dùng cho triển khai 1 VPS, xem docs/DEPLOY-VN.md)
+# Build web tĩnh, phục vụ bằng Caddy (image cho NAT VPS, xem docs/DEPLOY-NATVPS.md)
 FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./

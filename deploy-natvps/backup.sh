@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sao lưu database + ảnh/video. Chạy hằng ngày bằng cron (xem docs/DEPLOY-VN.md).
+# Sao lưu database + ảnh/video. Chạy hằng ngày bằng cron (xem docs/DEPLOY-NATVPS.md, mục 7).
 set -euo pipefail
 cd "$(dirname "$0")"
 source .env

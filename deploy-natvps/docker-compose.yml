@@ -35,6 +35,8 @@ services:
       SERVER_TOMCAT_THREADS_MAX: "40"
     volumes:
       - uploads:/app/data
+      # File service account Google Cloud khi quét hóa đơn bằng Gemini (docs/DEPLOY-NATVPS.md mục 9)
+      - ./secrets:/app/secrets:ro
     mem_limit: 600m
     depends_on:
       db:

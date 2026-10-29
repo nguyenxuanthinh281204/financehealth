@@ -211,8 +211,96 @@ Quay về bản cũ: mỗi image còn có tag là mã commit. Thêm `IMAGE_TAG=<
 
 ## 9. Quét hóa đơn bằng AI, cài lên điện thoại
 
-- Điền `ANTHROPIC_API_KEY` trong `.env` rồi `docker compose up -d` (xem [DEPLOY-VN.md mục 7](DEPLOY-VN.md)).
-- Cài lên màn hình chính: iPhone dùng Safari → **Chia sẻ → Thêm vào MH chính**. Android dùng Chrome → **Cài đặt ứng dụng**. Camera chạy được vì Cloudflare đã cấp HTTPS.
+Chọn một trong hai bằng biến `RECEIPT_PROVIDER` trong `.env`. Không cấu hình thì nút chụp hóa đơn vẫn lưu ảnh, bạn tự nhập số tiền.
+
+| `RECEIPT_PROVIDER` | Dịch vụ | Chi phí |
+|---|---|---|
+| `anthropic` (mặc định) | Claude, cần `ANTHROPIC_API_KEY` (xem [DEPLOY-VN.md mục 7](DEPLOY-VN.md)) | Nạp credit trước, khoảng 1.000đ/lần quét |
+| `gemini` | Gemini trên **Vertex AI** (Google Cloud) | Trừ vào credit dùng thử 300 USD (90 ngày), sau đó ước tính dưới 100đ/lần quét |
+
+> Chỉ **Vertex AI** mới trừ vào credit dùng thử. Key tạo ở Google AI Studio (Gemini API) **không** dùng credit này, nên app chỉ hỗ trợ Vertex AI.
+
+### 9.1. Bật quét bằng Gemini (Vertex AI)
+
+**Bước 1: Tạo project và nhận credit**
+
+1. Vào [console.cloud.google.com](https://console.cloud.google.com/), đăng nhập Gmail, bấm **Start free** / **Dùng thử miễn phí**, nhập thẻ để xác minh. Google cộng 300 USD dùng trong 90 ngày.
+2. Ô chọn project trên cùng → **New project** → đặt tên `financehealth` → **Create**.
+3. Ghi lại **Project ID** (dạng `financehealth-123456`, xem ở trang **Dashboard** của project). Đây là giá trị cho `GCP_PROJECT_ID`, không phải tên project.
+
+**Bước 2: Bật Vertex AI API**
+
+Menu ☰ → **APIs & Services** → **Library** → tìm **Vertex AI API** → **Enable**. (Hoặc mở thẳng [link này](https://console.cloud.google.com/apis/library/aiplatform.googleapis.com), nhớ chọn đúng project.)
+
+**Bước 3: Tạo service account và file khóa**
+
+1. Menu ☰ → **IAM & Admin** → **Service Accounts** → **Create service account**.
+2. Tên: `financehealth-receipt` → **Create and continue**.
+3. Role: chọn **Vertex AI User** → **Continue** → **Done**. Chỉ cấp role này, không cấp Owner/Editor.
+4. Bấm vào service account vừa tạo → tab **Keys** → **Add key** → **Create new key** → **JSON** → **Create**. Trình duyệt tải về một file `.json`. Giữ kín file này như mật khẩu.
+
+Nếu báo *Service account key creation is disabled*: tài khoản thuộc một tổ chức đang chặn tạo key. Dùng Gmail cá nhân (không thuộc tổ chức) thì không gặp.
+
+**Bước 4: Đưa file khóa lên VPS**
+
+Trên VPS:
+
+```bash
+mkdir -p /root/financehealth/deploy-natvps/secrets
+```
+
+Trên máy tính (thay cổng SSH, IP và tên file tải về):
+
+```bash
+scp -P <cổng-ssh> ~/Downloads/financehealth-xxxx.json root@<ip-nat-vps>:/root/financehealth/deploy-natvps/secrets/gcp-key.json
+```
+
+Hoặc trên VPS chạy `nano /root/financehealth/deploy-natvps/secrets/gcp-key.json` rồi dán nội dung file vào.
+
+Cho container đọc được file (app chạy bằng user thường, không phải root):
+
+```bash
+chmod 644 /root/financehealth/deploy-natvps/secrets/gcp-key.json
+```
+
+Thư mục `secrets/` đã nằm trong `.gitignore`, không bị đẩy lên GitHub và không ảnh hưởng `git pull` của auto-update.
+
+**Bước 5: Sửa `.env` và khởi động lại**
+
+```bash
+cd /root/financehealth/deploy-natvps
+nano .env
+```
+
+```
+RECEIPT_PROVIDER=gemini
+GCP_PROJECT_ID=financehealth-123456
+GCP_LOCATION=global
+GEMINI_MODEL=gemini-3.6-flash
+GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/gcp-key.json
+```
+
+```bash
+docker compose up -d
+docker compose logs api | grep -i gemini
+```
+
+Không có dòng `Cannot create Gemini client` là được. Chụp thử một hóa đơn trong app để kiểm tra.
+
+**Bước 6: Đặt cảnh báo ngân sách (nên làm ngay)**
+
+1. Menu ☰ → **Billing** → **Budgets & alerts** → **Create budget**.
+2. Scope: chọn project `financehealth`. Bỏ chọn **Include credits in cost** nếu muốn được báo theo số credit đã tiêu (giữ chọn thì chỉ báo khi bắt đầu tốn tiền thật).
+3. Amount: **Specified amount**, ví dụ `10` USD.
+4. Thresholds: 50%, 90%, 100% → email báo về Gmail → **Finish**.
+
+Cảnh báo chỉ gửi email, **không tự chặn chi tiêu**. Khi còn ở gói dùng thử, Google không trừ tiền thẻ trừ khi bạn tự bấm **Activate full account** (nâng cấp tài khoản trả phí). Hết 90 ngày hoặc hết credit mà chưa nâng cấp thì Vertex AI ngừng chạy: app vẫn hoạt động, chỉ quét hóa đơn báo lỗi, khi đó đổi `RECEIPT_PROVIDER=anthropic` (hoặc nâng cấp tài khoản nếu muốn tiếp tục dùng Gemini).
+
+Xem credit còn lại: **Billing** → **Credits**.
+
+### 9.2. Cài lên điện thoại
+
+Cài lên màn hình chính: iPhone dùng Safari → **Chia sẻ → Thêm vào MH chính**. Android dùng Chrome → **Cài đặt ứng dụng**. Camera chạy được vì Cloudflare đã cấp HTTPS.
 
 ---
 
@@ -227,3 +315,4 @@ Quay về bản cũ: mỗi image còn có tag là mã commit. Thêm `IMAGE_TAG=<
 | `api` cứ khởi động lại | Thiếu RAM. Chạy `free -h`, `docker compose logs api`. Bật swap, hoặc giảm `-Xmx` trong `JAVA_OPTS`. |
 | Ảnh không hiện khi dùng R2/S3 | Sai endpoint, key hoặc tên bucket. Xem `docker compose logs api`. |
 | Ổ đầy | `df -h`, `docker image prune -f`, xóa bớt `~/backups`, chuyển ảnh/video sang Object Storage. |
+| Quét hóa đơn bằng Gemini không chạy | `docker compose logs api \| grep -i -E "gemini\|receipt"`. `Failed to get application default credentials`: sai đường dẫn hoặc thiếu `chmod 644` file khóa (mục 9.1 bước 4). `status=403`: chưa bật Vertex AI API hoặc service account thiếu role **Vertex AI User**. `status=404`: sai `GCP_PROJECT_ID` hoặc tên `GEMINI_MODEL`. |

@@ -22,6 +22,7 @@ export default function ExpenseSheet({ onClose, expense }: { onClose: () => void
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['expenses'] })
     qc.invalidateQueries({ queryKey: ['summary'] })
+    qc.invalidateQueries({ queryKey: ['habits'] })
   }
 
   const scan = useMutation({

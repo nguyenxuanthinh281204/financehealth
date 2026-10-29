@@ -60,6 +60,20 @@ export interface Moment {
   contentType: string; durationSec: number | null; caption: string | null
 }
 
+export type HabitKind = 'EXPENSE' | 'MOMENT' | 'WEIGHT' | 'MEAL' | 'CUSTOM'
+export type HabitFrequency = 'DAILY' | 'WEEKLY'
+export interface Habit {
+  id: number; kind: HabitKind; name: string; emoji: string; frequency: HabitFrequency
+  auto: boolean; dailyTarget: number; archived: boolean
+  /** Hôm nay (WEEKLY: tuần này) đã đạt chưa */
+  done: boolean; todayCount: number; todaySlots: number[]
+  currentStreak: number; bestStreak: number; rate30: number | null
+  /** Mức 0/1/2 từng ngày, từ historyStart tới hôm nay */
+  history: number[]
+}
+export interface HabitOverview { today: string; historyStart: string; habits: Habit[] }
+export interface HabitInput { name?: string; emoji?: string; frequency?: HabitFrequency; archived?: boolean }
+
 export interface MonthlySummary {
   month: string
   spending: {
@@ -74,4 +88,8 @@ export interface MonthlySummary {
   }
   nutrition: { plannedDays: number; avgPlannedKcal: number | null; avgTargetKcal: number | null; avgProtein: number | null; avgTargetProtein: number | null }
   moments: { count: number; previewUrls: string[] }
+  habits: {
+    percent: number | null
+    items: { id: number; name: string; emoji: string; frequency: HabitFrequency; done: number; total: number; percent: number | null }[]
+  }
 }

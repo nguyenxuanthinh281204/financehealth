@@ -158,7 +158,10 @@ function WeightHistory({ current, target }: { current: number; target: number | 
   const [adding, setAdding] = useState(false)
   const del = useMutation({
     mutationFn: (id: number) => api.del(`/api/body/weights/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['weights'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['weights'] })
+      qc.invalidateQueries({ queryKey: ['habits'] })
+    },
   })
   const data = (weights.data ?? []).map((w) => ({ date: w.logDate, kg: Number(w.weightKg) }))
 

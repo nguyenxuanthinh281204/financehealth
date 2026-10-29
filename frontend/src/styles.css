@@ -284,3 +284,44 @@ textarea.input { min-height: 80px; resize: vertical; }
 }
 .hero .muted { color: rgba(255,255,255,.75); }
 .tooltip-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 13px; box-shadow: var(--shadow); }
+
+/* Habits */
+.habit-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.habit-row:last-of-type { border-bottom: none; }
+.habit-row .habit-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color .2s; }
+.habit-row.done .habit-name { color: var(--muted); }
+.habit-title { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.streak { display: inline-flex; align-items: center; gap: 2px; padding: 1px 7px; border-radius: 99px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--spend) 16%, transparent); color: var(--spend); font-variant-numeric: tabular-nums; flex: none; }
+.check-btn { width: 36px; height: 36px; border-radius: 50%; flex: none; display: grid; place-items: center; cursor: pointer; border: 2px solid var(--border); background: transparent; color: transparent; transition: background .2s, border-color .2s, color .2s, transform .15s; }
+.check-btn:active:not(:disabled) { transform: scale(.88); }
+.check-btn.on { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); animation: pop .25s ease; }
+.check-btn:disabled { cursor: default; }
+@keyframes pop { 50% { transform: scale(1.15); } }
+.slot-chips { display: flex; gap: 6px; margin-top: 4px; }
+.slot-chip { display: inline-flex; align-items: center; gap: 3px; min-height: 30px; padding: 0 10px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; cursor: pointer; transition: background .2s, color .2s; }
+.slot-chip.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+.habit-stats { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.habit-stats > div { display: inline-flex; align-items: center; gap: 4px; }
+.habit-stats b { color: var(--text); }
+/* Bản đồ nhiệt: 7 hàng (T2..CN), --weeks cột, ô co giãn theo bề ngang */
+.heatmap { --gap: 3px; max-width: calc(var(--weeks) * 18px); }
+.heatmap-months, .heatmap-grid { display: grid; grid-template-columns: repeat(var(--weeks), minmax(0, 1fr)); gap: var(--gap); }
+.heatmap-months { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.heatmap-months span { white-space: nowrap; overflow: visible; }
+.heatmap-grid { grid-template-rows: repeat(7, auto); grid-auto-flow: column; }
+.heatmap-grid i { aspect-ratio: 1; border-radius: 3px; background: var(--surface-2); }
+.heatmap-grid i.lv1 { background: color-mix(in srgb, var(--primary) 40%, var(--surface-2)); }
+.heatmap-grid i.lv2 { background: var(--primary); }
+.heatmap-grid i.future { background: transparent; }
+.recent-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 12px; }
+.recent-day { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 11px; cursor: pointer; }
+.recent-day b { font-size: 14px; color: var(--text); height: 20px; display: grid; place-items: center; }
+.recent-day.today { border-color: var(--primary); }
+.recent-day.lv2 { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+.recent-day.lv2 b { color: var(--primary-ink); }
+.recent-day:disabled { cursor: default; }
+.emoji-chip { font-size: 18px; padding: 0 10px; }
+.habit-rate { font-size: 22px; font-weight: 700; color: var(--primary); }
+.habit-month-row { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(40px, 1fr) 96px; align-items: center; gap: 10px; font-size: 14px; }
+.habit-month-row > span:last-child { text-align: right; }
+.habit-month-row .grow { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

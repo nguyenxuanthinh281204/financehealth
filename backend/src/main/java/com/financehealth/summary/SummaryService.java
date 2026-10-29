@@ -5,6 +5,8 @@ import com.financehealth.body.WeightLogRepository;
 import com.financehealth.body.WeightLog;
 import com.financehealth.finance.Expense;
 import com.financehealth.finance.ExpenseRepository;
+import com.financehealth.habit.HabitDtos;
+import com.financehealth.habit.HabitService;
 import com.financehealth.meal.MealPlan;
 import com.financehealth.meal.MealPlanItem;
 import com.financehealth.meal.MealPlanRepository;
@@ -41,7 +43,8 @@ public class SummaryService {
 
     public record Moments(long count, List<String> previewUrls) {}
 
-    public record MonthlySummary(String month, Spending spending, Weight weight, Nutrition nutrition, Moments moments) {}
+    public record MonthlySummary(String month, Spending spending, Weight weight, Nutrition nutrition, Moments moments,
+                                 HabitDtos.Monthly habits) {}
 
     private final ExpenseRepository expenses;
     private final WeightLogRepository weights;
@@ -49,15 +52,18 @@ public class SummaryService {
     private final MealPlanRepository plans;
     private final MomentRepository moments;
     private final StorageService storage;
+    private final HabitService habits;
 
     public SummaryService(ExpenseRepository expenses, WeightLogRepository weights, BodyProfileRepository profiles,
-                          MealPlanRepository plans, MomentRepository moments, StorageService storage) {
+                          MealPlanRepository plans, MomentRepository moments, StorageService storage,
+                          HabitService habits) {
         this.expenses = expenses;
         this.weights = weights;
         this.profiles = profiles;
         this.plans = plans;
         this.moments = moments;
         this.storage = storage;
+        this.habits = habits;
     }
 
     @Transactional(readOnly = true)
@@ -65,7 +71,7 @@ public class SummaryService {
         LocalDate from = month.atDay(1);
         LocalDate to = month.atEndOfMonth();
         return new MonthlySummary(month.toString(), spending(userId, month, today), weight(userId, from, to),
-                nutrition(userId, from, to), moments(userId, from, to));
+                nutrition(userId, from, to), moments(userId, from, to), habits.monthly(userId, from, to, today));
     }
 
     private Spending spending(long userId, YearMonth month, LocalDate today) {

@@ -17,6 +17,7 @@ export default function WeightSheet({ onClose, current }: { onClose: () => void;
       qc.invalidateQueries({ queryKey: ['weights'] })
       qc.invalidateQueries({ queryKey: ['profile'] })
       qc.invalidateQueries({ queryKey: ['summary'] })
+      qc.invalidateQueries({ queryKey: ['habits'] })
       onClose()
     },
   })

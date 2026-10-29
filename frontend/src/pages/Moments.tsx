@@ -24,7 +24,11 @@ export default function Moments() {
 
   const del = useMutation({
     mutationFn: (id: number) => api.del(`/api/moments/${id}`),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['moments'] }); setViewing(null) },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['moments'] })
+      qc.invalidateQueries({ queryKey: ['habits'] })
+      setViewing(null)
+    },
   })
 
   return (

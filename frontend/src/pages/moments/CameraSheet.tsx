@@ -145,6 +145,7 @@ export default function CameraSheet({ onClose }: { onClose: () => void }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['moments'] })
       qc.invalidateQueries({ queryKey: ['summary'] })
+      qc.invalidateQueries({ queryKey: ['habits'] })
       onClose()
     },
   })

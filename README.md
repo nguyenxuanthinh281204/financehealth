@@ -15,16 +15,15 @@ Web app cá nhân (dùng được như app trên điện thoại) để quản l
 - **Frontend**: React 19 + TypeScript + Vite, dạng **PWA** (cài lên màn hình chính iOS/Android), React Query, Recharts.
 - **Backend**: Spring Boot 3.5 (Java 21), Spring Security + JWT, JPA, Flyway.
 - **Database**: PostgreSQL 16.
-- **Lưu file**: Amazon S3 (hoặc ổ đĩa local khi dev).
+- **Lưu file**: dịch vụ chuẩn S3 như Cloudflare R2 (hoặc ổ đĩa local).
 - **Quét hóa đơn**: Claude vision (Anthropic Java SDK) hoặc Gemini trên Vertex AI (Google Gen AI SDK), trả về JSON có cấu trúc.
 
 ```
 backend/    Spring Boot API
 frontend/   React PWA
-deploy/     deploy AWS: docker-compose cho EC2, Caddy (HTTPS), .env mẫu
-deploy-vps/ deploy 1 VPS (BizFly, VNG, Vietnix...): web + API + PostgreSQL, script sao lưu
+db/         script khởi tạo PostgreSQL cho dev (tạo database test)
 deploy-natvps/ deploy NAT VPS qua Cloudflare Tunnel, dùng image build sẵn trên GitHub
-docs/       DEPLOY-VN.md (VPS Việt Nam), DEPLOY-NATVPS.md (NAT VPS), DEPLOY.md (AWS)
+docs/       DEPLOY-NATVPS.md (hướng dẫn deploy)
 ```
 
 ## Chạy local
@@ -92,6 +91,4 @@ cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
 
 ## Deploy
 
-- **VPS Việt Nam** (đơn giản, rẻ): [docs/DEPLOY-VN.md](docs/DEPLOY-VN.md). Một VPS Ubuntu chạy toàn bộ bằng Docker, HTTPS tự động, sao lưu hằng ngày.
-- **NAT VPS** (rẻ nhất, không cần IP riêng): [docs/DEPLOY-NATVPS.md](docs/DEPLOY-NATVPS.md). Cloudflare Tunnel lo HTTPS, image Docker build sẵn trên GitHub, cấu hình vừa máy 1 GB RAM.
-- **AWS**: [docs/DEPLOY.md](docs/DEPLOY.md). EC2 + RDS + S3 + CloudFront, HTTPS và trỏ tên miền.
+**NAT VPS** (không cần IP riêng): [docs/DEPLOY-NATVPS.md](docs/DEPLOY-NATVPS.md). Cloudflare Tunnel lo HTTPS, image Docker build sẵn trên GitHub, VPS tự cập nhật khi CI xanh, ảnh/video lưu trên Cloudflare R2.

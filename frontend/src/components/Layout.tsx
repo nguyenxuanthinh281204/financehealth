@@ -17,7 +17,7 @@ export default function Layout() {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <div className="brand"><img src="/icon-192.png" width={32} height={32} alt="" /> FinanceHealth</div>
+        <div className="brand"><img src="/icon-192.png" width={32} height={32} alt="" /> Hatchi</div>
         {NAV.slice(0, 2).map((n) => <Item key={n.to} {...n} />)}
         <Item to="/co-the" label="Cơ thể & macro" icon={HeartPulse} />
         {NAV.slice(2, 4).map((n) => <Item key={n.to} {...n} />)}

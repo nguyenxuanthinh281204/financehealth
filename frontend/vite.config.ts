@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'FinanceHealth',
-        short_name: 'FinanceHealth',
+        name: 'Hatchi',
+        short_name: 'Hatchi',
         description: 'Quản lý chi tiêu, cân nặng, thực đơn và khoảnh khắc mỗi ngày',
         lang: 'vi',
         start_url: '/',

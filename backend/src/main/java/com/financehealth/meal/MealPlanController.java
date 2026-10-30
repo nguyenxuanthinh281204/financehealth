@@ -1,6 +1,7 @@
 package com.financehealth.meal;
 
 import com.financehealth.common.CurrentUser;
+import com.financehealth.food.Food;
 import com.financehealth.meal.MealDtos.*;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -35,6 +36,25 @@ public class MealPlanController {
     public ResponseEntity<PlanView> get(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return service.get(CurrentUser.id(), date).map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    /** Thêm một nguyên liệu cố định vào bữa của ngày date. */
+    @PostMapping("/{date}/meals/{meal}/items")
+    public PlanView addItem(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                            @PathVariable Food.Meal meal, @Valid @RequestBody AddItemRequest req) {
+        return service.addItem(CurrentUser.id(), date, meal, req.foodId(), req.grams());
+    }
+
+    /** Bỏ tất cả món của một bữa. */
+    @DeleteMapping("/{date}/meals/{meal}")
+    public PlanView clearMeal(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                              @PathVariable Food.Meal meal) {
+        return service.clearMeal(CurrentUser.id(), date, meal);
+    }
+
+    @DeleteMapping("/items/{itemId}")
+    public PlanView removeItem(@PathVariable long itemId) {
+        return service.updateItem(CurrentUser.id(), itemId, 0);
     }
 
     @PatchMapping("/items/{itemId}")

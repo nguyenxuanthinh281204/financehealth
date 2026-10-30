@@ -13,6 +13,9 @@ public final class MealDtos {
 
     public record UpdateItemRequest(@NotNull @Min(0) @Max(2000) Integer grams) {}
 
+    /** grams null = khẩu phần mặc định của món */
+    public record AddItemRequest(@NotNull Long foodId, @Min(1) @Max(2000) Integer grams) {}
+
     public record Macros(BigDecimal kcal, BigDecimal protein, BigDecimal carbs, BigDecimal fat) {
         static final Macros ZERO = new Macros(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
 
@@ -31,6 +34,11 @@ public final class MealDtos {
     /** Tổng khối lượng (đã luộc chín) một nguyên liệu cần cho cả tuần */
     public record ShoppingItem(String foodName, Food.Category category, int grams, Integer unitG, String unitName) {}
 
+    /** Nguyên liệu cố định có thể thêm vào một bữa */
+    public record StapleView(long foodId, String name, Food.Category category, int defaultGrams,
+                             Integer unitG, String unitName, Macros per100g) {}
+
     public record WeekView(LocalDate weekStart, LocalDate weekEnd, boolean created, boolean canCreate,
-                           List<String> ingredients, List<PlanView> days, List<ShoppingItem> shopping) {}
+                           List<String> ingredients, List<StapleView> staples, List<PlanView> days,
+                           List<ShoppingItem> shopping) {}
 }

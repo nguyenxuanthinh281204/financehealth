@@ -585,3 +585,5 @@ textarea.input { min-height: 80px; resize: vertical; }
 .danger-text { color: var(--danger); }
 
 .note-card-actions .note-act { width: 30px; height: 30px; }
+.item-remove { width: 34px; height: 34px; color: var(--muted); }
+.item-remove:hover { color: var(--danger); }

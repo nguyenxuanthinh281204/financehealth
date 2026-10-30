@@ -38,9 +38,13 @@ export interface PlanItem {
 export interface MealView { meal: Meal; target: MacroTotals; total: MacroTotals; items: PlanItem[] }
 export interface Plan { id: number; date: string; target: MacroTotals; total: MacroTotals; meals: MealView[] }
 export interface ShoppingItem { foodName: string; category: FoodCategory; grams: number; unitG: number | null; unitName: string | null }
+export interface Staple {
+  foodId: number; name: string; category: FoodCategory; defaultGrams: number
+  unitG: number | null; unitName: string | null; per100g: MacroTotals
+}
 export interface WeekMenu {
   weekStart: string; weekEnd: string; created: boolean; canCreate: boolean
-  ingredients: string[]; days: Plan[]; shopping: ShoppingItem[]
+  ingredients: string[]; staples: Staple[]; days: Plan[]; shopping: ShoppingItem[]
 }
 
 export interface LineItem { name: string; quantity: number | null; price: number | null }

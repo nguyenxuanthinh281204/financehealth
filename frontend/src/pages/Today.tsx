@@ -97,7 +97,7 @@ export default function Today() {
             </div>
             {plan.data ? (
               <div className="small muted" style={{ marginTop: 12 }}>
-                {plan.data.meals.map((m) => `${MEALS[m.meal].emoji} ${m.items.map((i) => i.foodName).join(', ')}`).join(' · ')}
+                {plan.data.meals.map((m) => `${MEALS[m.meal].emoji} ${m.items.length ? m.items.map((i) => i.foodName).join(', ') : 'bỏ bữa'}`).join(' · ')}
               </div>
             ) : (
               <Link to="/thuc-don" className="btn secondary block" style={{ marginTop: 14 }}>Tạo thực đơn tuần</Link>

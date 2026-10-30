@@ -80,6 +80,26 @@ class ApiFlowIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content("{\"grams\":100}"), 200);
         assertThat(edited.at("/meals/1/items/0/grams").asInt()).isEqualTo(100);
 
+        // Bỏ một món, bỏ cả bữa, thêm lại món: bữa trống vẫn trả về, macro tính lại
+        int lunchCount = edited.at("/meals/1/items").size();
+        JsonNode removed = call(delete("/api/meal-plans/items/" + itemId).header("Authorization", bearer), 200);
+        assertThat(removed.at("/meals/1/items").size()).isEqualTo(lunchCount - 1);
+        JsonNode cleared = call(delete("/api/meal-plans/" + today0 + "/meals/BREAKFAST").header("Authorization", bearer), 200);
+        assertThat(cleared.get("meals").size()).isEqualTo(3);
+        assertThat(cleared.at("/meals/0/meal").asText()).isEqualTo("BREAKFAST");
+        assertThat(cleared.at("/meals/0/items").size()).isZero();
+        assertThat(cleared.at("/meals/0/total/kcal").asDouble()).isZero();
+        assertThat(cleared.at("/meals/0/target/kcal").asDouble()).isPositive();
+        long eggId = 0;
+        for (JsonNode s : week.get("staples")) if (s.get("name").asText().startsWith("Trứng")) eggId = s.get("foodId").asLong();
+        JsonNode added = call(post("/api/meal-plans/" + today0 + "/meals/BREAKFAST/items").header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"foodId\":" + eggId + "}"), 200);
+        assertThat(added.at("/meals/0/items").size()).isEqualTo(1);
+        assertThat(added.at("/meals/0/items/0/grams").asInt() % 50).isZero();
+        assertThat(added.at("/meals/0/total/kcal").asDouble()).isPositive();
+        call(post("/api/meal-plans/" + today0 + "/meals/BREAKFAST/items").header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"foodId\":" + eggId + "}"), 409);
+
         // Chi tiêu
         String today = today0;
         call(post("/api/expenses").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)

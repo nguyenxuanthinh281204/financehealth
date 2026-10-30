@@ -91,11 +91,16 @@ public class MealPlanService {
                 .map(e -> new ShoppingItem(e.getKey().getName(), e.getKey().getCategory(), e.getValue(),
                         e.getKey().getUnitG(), e.getKey().getUnitName()))
                 .toList();
-        List<String> ingredients = foods.findByOwnerIdIsNullAndStapleKeyIsNotNull().stream()
+        List<Food> stapleFoods = foods.findByOwnerIdIsNullAndStapleKeyIsNotNull().stream()
                 .sorted(Comparator.comparingInt(f -> WeeklyMenuTemplate.KEYS.indexOf(f.getStapleKey())))
-                .map(Food::getName).toList();
+                .toList();
+        List<StapleView> staples = stapleFoods.stream()
+                .map(f -> new StapleView(f.getId(), f.getName(), f.getCategory(), defaultGrams(f),
+                        f.getUnitG(), f.getUnitName(), new Macros(f.getKcal(), f.getProtein(), f.getCarbs(), f.getFat())))
+                .toList();
 
-        return new WeekView(start, end, created, !created && start.equals(weekStart(today)), ingredients,
+        return new WeekView(start, end, created, !created && start.equals(weekStart(today)),
+                stapleFoods.stream().map(Food::getName).toList(), staples,
                 dayPlans.stream().map(this::toView).toList(), shopping);
     }
 
@@ -117,12 +122,44 @@ public class MealPlanService {
         return toView(plan);
     }
 
+    @Transactional
+    public PlanView addItem(long userId, LocalDate date, Food.Meal meal, long foodId, Integer grams) {
+        MealPlan plan = plans.findByUserIdAndPlanDate(userId, date)
+                .orElseThrow(() -> ApiException.notFound("thực đơn ngày này"));
+        Food food = foods.findById(foodId)
+                .filter(f -> f.getOwnerId() == null && f.getStapleKey() != null)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Chỉ thêm được nguyên liệu trong thực đơn tuần"));
+        boolean exists = plan.getItems().stream()
+                .anyMatch(i -> i.getMeal() == meal && i.getFood().getId().equals(food.getId()));
+        if (exists) throw new ApiException(HttpStatus.CONFLICT, food.getName() + " đã có trong bữa này, hãy sửa số gram");
+        int pos = plan.getItems().stream().mapToInt(MealPlanItem::getPosition).max().orElse(-1) + 1;
+        plan.addItem(new MealPlanItem(meal, food, grams != null ? grams : defaultGrams(food), pos));
+        plans.saveAndFlush(plan);
+        return toView(plan);
+    }
+
+    @Transactional
+    public PlanView clearMeal(long userId, LocalDate date, Food.Meal meal) {
+        MealPlan plan = plans.findByUserIdAndPlanDate(userId, date)
+                .orElseThrow(() -> ApiException.notFound("thực đơn ngày này"));
+        plan.getItems().removeIf(i -> i.getMeal() == meal);
+        return toView(plan);
+    }
+
+    /** Khẩu phần mặc định, làm tròn theo đơn vị (quả trứng) hoặc 5g, nằm trong khoảng min-max của món. */
+    static int defaultGrams(Food f) {
+        int step = f.getUnitG() != null && f.getUnitG() > 0 ? f.getUnitG() : 5;
+        int g = Math.max(f.getMinG(), Math.min(f.getMaxG(), f.getDefaultServingG()));
+        return Math.max(step, Math.round((float) g / step) * step);
+    }
+
     private PlanView toView(MealPlan p) {
         Macros dayTarget = new Macros(p.getTargetKcal(), p.getTargetProtein(), p.getTargetCarbs(), p.getTargetFat());
-        Map<Food.Meal, List<MealPlanItem>> grouped = p.getItems().stream()
-                .collect(Collectors.groupingBy(MealPlanItem::getMeal, () -> new EnumMap<>(Food.Meal.class), Collectors.toList()));
+        Map<Food.Meal, List<MealPlanItem>> grouped = new EnumMap<>(Food.Meal.class);
+        // Luôn đủ 3 bữa, kể cả bữa đã bỏ hết món, để còn thêm món lại
+        for (Food.Meal m : Food.Meal.values()) grouped.put(m, new ArrayList<>());
+        p.getItems().forEach(i -> grouped.get(i.getMeal()).add(i));
 
-        double activeShare = grouped.keySet().stream().mapToDouble(MealPlanner.MEAL_SHARE::get).sum();
         List<MealView> meals = new ArrayList<>();
         Macros dayTotal = Macros.ZERO;
         for (var e : grouped.entrySet()) {
@@ -133,8 +170,8 @@ public class MealPlanService {
                             new Macros(i.getKcal(), i.getProtein(), i.getCarbs(), i.getFat())))
                     .toList();
             Macros total = items.stream().map(ItemView::macros).reduce(Macros.ZERO, Macros::plus);
-            double share = MealPlanner.MEAL_SHARE.get(e.getKey()) / activeShare;
-            meals.add(new MealView(e.getKey(), scale(dayTarget, share), total, items));
+            // Tỷ lệ bữa cố định: bỏ một bữa thì cả ngày thiếu, không dồn mục tiêu sang bữa khác
+            meals.add(new MealView(e.getKey(), scale(dayTarget, MealPlanner.MEAL_SHARE.get(e.getKey())), total, items));
             dayTotal = dayTotal.plus(total);
         }
         return new PlanView(p.getId(), p.getPlanDate(), dayTarget, dayTotal, meals);

@@ -7,6 +7,7 @@ import { EXPENSE_CATEGORIES, MEALS, isoDate, money, num, prettyDate } from '../l
 import { Empty, MacroBar, Ring } from '../components/ui'
 import { HabitChecklist } from '../components/habits'
 import { TodayTasksCard } from '../components/tasks'
+import { TodayNotesCard } from '../components/notes'
 import type { HabitKind } from '../api/types'
 import ExpenseSheet from './expenses/ExpenseSheet'
 import CameraSheet from './moments/CameraSheet'
@@ -74,6 +75,8 @@ export default function Today() {
         )}
 
         <TodayTasksCard />
+
+        <TodayNotesCard />
 
         {macros && (
           <div className="card">

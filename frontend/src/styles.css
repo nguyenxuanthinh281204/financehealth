@@ -424,3 +424,164 @@ textarea.input { min-height: 80px; resize: vertical; }
 .pw-toggle { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
 .saved-hint { display: inline-flex; align-items: center; gap: 4px; color: var(--primary); font-size: 13px; font-weight: 500; }
 @media (max-width: 420px) { .swatch span { display: none; } .swatch { padding: 6px 0; } }
+
+/* Ghi chú (bảng màu nền giống Keep, có bản tối) */
+:root {
+  --nc-red: #faafa8; --nc-orange: #f39f76; --nc-yellow: #fff8b8; --nc-green: #e2f6d3; --nc-teal: #b4ddd3; --nc-blue: #d4e4ed;
+  --nc-darkblue: #aeccdc; --nc-purple: #d3bfdb; --nc-pink: #f6e2dd; --nc-brown: #e9e3d4; --nc-gray: #efeff1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --nc-red: #77172e; --nc-orange: #692b17; --nc-yellow: #7c4a03; --nc-green: #264d3b; --nc-teal: #0c625d; --nc-blue: #256377;
+    --nc-darkblue: #284255; --nc-purple: #472e5b; --nc-pink: #6c394f; --nc-brown: #4b443a; --nc-gray: #232427;
+  }
+}
+:root[data-theme="dark"] {
+  --nc-red: #77172e; --nc-orange: #692b17; --nc-yellow: #7c4a03; --nc-green: #264d3b; --nc-teal: #0c625d; --nc-blue: #256377;
+  --nc-darkblue: #284255; --nc-purple: #472e5b; --nc-pink: #6c394f; --nc-brown: #4b443a; --nc-gray: #232427;
+}
+/* Mặc định cũng phải đặt biến, để ô màu "Mặc định" nằm trong ghi chú có màu không bị kế thừa màu cha */
+.note-c-default { --note-bg: var(--surface); }
+.note-c-red { --note-bg: var(--nc-red); } .note-c-orange { --note-bg: var(--nc-orange); } .note-c-yellow { --note-bg: var(--nc-yellow); }
+.note-c-green { --note-bg: var(--nc-green); } .note-c-teal { --note-bg: var(--nc-teal); } .note-c-blue { --note-bg: var(--nc-blue); }
+.note-c-darkblue { --note-bg: var(--nc-darkblue); } .note-c-purple { --note-bg: var(--nc-purple); } .note-c-pink { --note-bg: var(--nc-pink); }
+.note-c-brown { --note-bg: var(--nc-brown); } .note-c-gray { --note-bg: var(--nc-gray); }
+
+.note-search {
+  display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 4px 0 14px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); cursor: text;
+}
+.note-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: 16px; color: var(--text); }
+.note-search:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); background: var(--surface); }
+.note-search .icon-btn { width: 36px; height: 36px; }
+
+.masonry { display: grid; gap: 10px; align-items: start; }
+.masonry-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+@media (min-width: 900px) { .masonry, .masonry-col { gap: 12px; } }
+.note-section + .note-section { margin-top: 6px; }
+.note-section .group-label { margin: 10px 4px 8px; }
+.trash-bar { margin-bottom: 12px; }
+
+.note-card {
+  position: relative; background: var(--note-bg, var(--surface)); border: 1px solid var(--border); border-radius: 14px;
+  padding: 12px 14px 6px; cursor: pointer; transition: box-shadow .15s ease, transform .15s ease; min-width: 0;
+}
+.note-card:not(.note-c-default) { border-color: transparent; }
+.note-card:hover { box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 6px 18px rgba(0, 0, 0, .10); }
+.note-card:active { transform: scale(.99); }
+.note-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.note-card-title { font-size: 15px; font-weight: 600; margin: 0 26px 6px 0; overflow-wrap: anywhere; }
+.note-card-body {
+  font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 6px;
+  display: -webkit-box; -webkit-line-clamp: 12; -webkit-box-orient: vertical; overflow: hidden;
+}
+.note-card-items { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+.note-card-item { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; }
+.note-card-item span { min-width: 0; overflow-wrap: anywhere; }
+.note-card-more { font-size: 13px; color: var(--muted); }
+.note-check {
+  width: 16px; height: 16px; margin-top: 3px; padding: 0; flex: none; display: grid; place-items: center; cursor: pointer;
+  border: 2px solid color-mix(in srgb, var(--text) 55%, transparent); border-radius: 3px; background: transparent; color: var(--text);
+}
+.note-check:disabled { cursor: default; }
+.note-check.on { border-color: color-mix(in srgb, var(--text) 35%, transparent); color: var(--muted); }
+.note-labels { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
+.note-label {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 10px; border-radius: 99px; font-size: 12px;
+  background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.note-label button { border: none; background: none; padding: 0; display: grid; cursor: pointer; color: inherit; opacity: .7; }
+.note-pin {
+  position: absolute; top: 4px; right: 4px; width: 34px; height: 34px; border-radius: 50%; border: none; background: transparent;
+  color: var(--muted); display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity .15s;
+}
+.note-pin.on { opacity: 1; color: var(--text); }
+.note-pin.static { position: static; opacity: 1; flex: none; }
+.note-pin:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.note-card:hover .note-pin, .note-card:focus-within .note-pin { opacity: 1; }
+.note-card-actions { display: flex; gap: 2px; margin: -4px -8px 0 -8px; opacity: 0; transition: opacity .15s; }
+.note-card:hover .note-card-actions, .note-card:focus-within .note-card-actions { opacity: 1; }
+/* Màn cảm ứng không có hover: thao tác nằm trong ô soạn */
+@media (hover: none) {
+  .note-card-actions { display: none; }
+  .note-pin:not(.on):not(.static) { display: none; }
+  .note-card { padding-bottom: 8px; }
+}
+.note-act {
+  width: 36px; height: 36px; border-radius: 50%; border: none; background: transparent; display: inline-grid; place-items: center;
+  color: var(--text); opacity: .75; cursor: pointer; flex: none;
+}
+.note-act:hover, .note-act[aria-expanded="true"] { background: color-mix(in srgb, var(--text) 9%, transparent); opacity: 1; }
+.note-act.on { color: var(--primary); opacity: 1; }
+.note-act.danger { width: auto; padding: 0 10px; border-radius: 99px; display: inline-flex; gap: 4px; color: var(--danger); font-size: 13px; font-weight: 600; opacity: 1; }
+
+.note-composer {
+  max-width: 600px; margin: 0 auto 18px; background: var(--note-bg, var(--surface)); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: var(--shadow), 0 2px 10px rgba(0, 0, 0, .06); padding: 8px 14px 6px;
+}
+.note-composer.collapsed { display: flex; align-items: center; padding: 2px 6px 2px 16px; }
+.note-composer-open { text-align: left; border: none; background: none; padding: 12px 0; font-size: 15px; font-weight: 500; color: var(--muted); cursor: text; }
+.note-title-row { display: flex; align-items: flex-start; gap: 6px; }
+.note-title-input, .note-body-input, .check-item-input {
+  display: block; width: 100%; border: none; outline: none; background: transparent; resize: none; overflow: hidden;
+  padding: 6px 0; color: var(--text); font-size: 16px; line-height: 1.45;
+}
+.note-title-input { font-size: 17px; font-weight: 600; }
+.note-body-input { min-height: 44px; }
+.note-title-input::placeholder, .note-body-input::placeholder, .check-item-input::placeholder { color: var(--muted); }
+.note-toolbar { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin: 4px -6px 0; }
+.pop-anchor { position: relative; }
+.popover {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; width: max-content; max-width: min(300px, calc(100vw - 40px));
+  padding: 10px; border-radius: 14px; background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, .2); animation: fade .12s ease;
+}
+.popover.up { top: auto; bottom: calc(100% + 6px); }
+.note-colors { display: grid; grid-template-columns: repeat(6, 34px); gap: 6px; }
+.note-swatch {
+  width: 34px; height: 34px; border-radius: 50%; padding: 0; display: grid; place-items: center; cursor: pointer; color: var(--text);
+  background: var(--note-bg, var(--surface)); border: 2px solid transparent; box-shadow: inset 0 0 0 1px var(--border);
+}
+.note-swatch.on { border-color: var(--primary); }
+.note-swatch:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.label-picker { width: 230px; max-width: 100%; }
+.input.sm { min-height: 38px; padding: 6px 10px; }
+.label-options { max-height: 220px; overflow-y: auto; margin-top: 6px; }
+.label-option { display: flex; align-items: center; gap: 10px; padding: 7px 2px; cursor: pointer; font-size: 14px; min-width: 0; }
+.label-option input { width: 16px; height: 16px; accent-color: var(--primary); flex: none; }
+.label-create {
+  display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 6px; padding: 8px 2px 2px; border: none;
+  border-top: 1px solid var(--border); background: none; color: var(--text); font-size: 14px; cursor: pointer; text-align: left;
+}
+
+.checklist-editor { display: flex; flex-direction: column; margin: 2px 0 4px; }
+.check-item { display: flex; align-items: flex-start; gap: 10px; }
+.check-item .note-check { margin-top: 10px; }
+.check-item-input { font-size: 15px; }
+.check-item.checked .check-item-input { text-decoration: line-through; color: var(--muted); }
+.check-item.add { color: var(--muted); }
+.check-item.add > svg { flex: none; margin: 7px -1px 0 -1px; }
+.check-item-del {
+  flex: none; width: 30px; height: 30px; margin-top: 3px; border: none; background: none; border-radius: 50%; display: grid;
+  place-items: center; color: var(--muted); cursor: pointer; opacity: 0;
+}
+.check-item:hover .check-item-del, .check-item:focus-within .check-item-del { opacity: 1; }
+@media (hover: none) { .check-item-del { opacity: .6; } }
+.checklist-editor .done-toggle { margin: 6px 0 2px; color: var(--muted); }
+
+.note-modal {
+  width: 100%; max-width: 600px; max-height: 92vh; display: flex; flex-direction: column;
+  background: var(--note-bg, var(--surface)); color: var(--text); border-radius: 24px 24px 0 0;
+  padding: 14px 16px calc(8px + var(--safe-b)); animation: slide .2s ease;
+}
+.note-modal-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; }
+.note-edited { text-align: right; font-size: 12px; color: var(--muted); margin: 8px 0 2px; }
+@media (min-width: 700px) { .note-modal { border-radius: 16px; padding-bottom: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); } }
+
+.label-edit-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.label-edit-row .input { flex: 1; width: auto; min-width: 0; }
+.label-edit-row > svg { flex: none; margin: 0 11px; }
+.label-edit-row .error { flex-basis: 100%; }
+.danger-text { color: var(--danger); }
+
+.note-card-actions .note-act { width: 30px; height: 30px; }

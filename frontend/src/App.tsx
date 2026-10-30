@@ -13,6 +13,7 @@ const Moments = lazy(() => import('./pages/Moments'))
 const Summary = lazy(() => import('./pages/Summary'))
 const Habits = lazy(() => import('./pages/Habits'))
 const Tasks = lazy(() => import('./pages/Tasks'))
+const Notes = lazy(() => import('./pages/Notes'))
 const Settings = lazy(() => import('./pages/Settings'))
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="khoanh-khac" element={<Moments />} />
         <Route path="thoi-quen" element={<Habits />} />
         <Route path="viec-can-lam" element={<Tasks />} />
+        <Route path="ghi-chu" element={<Notes />} />
         <Route path="tong-ket" element={<Summary />} />
         <Route path="cai-dat" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />

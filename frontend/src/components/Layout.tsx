@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { Camera, HeartPulse, Home, ListChecks, ListTodo, LogOut, PieChart, Settings, Utensils, Wallet } from 'lucide-react'
+import { Camera, HeartPulse, Home, ListChecks, ListTodo, LogOut, PieChart, Settings, StickyNote, Utensils, Wallet } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { Loading } from './ui'
 
@@ -20,6 +20,7 @@ export default function Layout() {
         <div className="brand"><img src="/icon-192.png" width={32} height={32} alt="" /> Hatchi</div>
         {NAV.slice(0, 1).map((n) => <Item key={n.to} {...n} />)}
         <Item to="/viec-can-lam" label="Việc cần làm" icon={ListTodo} />
+        <Item to="/ghi-chu" label="Ghi chú" icon={StickyNote} />
         {NAV.slice(1, 2).map((n) => <Item key={n.to} {...n} />)}
         <Item to="/co-the" label="Cơ thể & macro" icon={HeartPulse} />
         {NAV.slice(2, 4).map((n) => <Item key={n.to} {...n} />)}

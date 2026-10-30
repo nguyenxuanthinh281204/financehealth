@@ -106,3 +106,19 @@ export interface TaskBoard { today: string; lists: TaskListInfo[]; tasks: Task[]
 export interface TaskInput {
   title?: string; notes?: string; dueDate?: string; clearDue?: boolean; starred?: boolean; completed?: boolean; listId?: number
 }
+
+export type NoteColor =
+  | 'default' | 'red' | 'orange' | 'yellow' | 'green' | 'teal' | 'blue' | 'darkblue' | 'purple' | 'pink' | 'brown' | 'gray'
+export interface NoteItem { id: string; text: string; checked: boolean }
+export interface NoteLabel { id: number; name: string }
+/** Trường null không có trong JSON (trashedAt) */
+export interface Note {
+  id: number; title: string; body: string; checklist: boolean; items: NoteItem[]; color: NoteColor
+  pinned: boolean; archived: boolean; trashedAt?: string; position: number; labelIds: number[]
+  createdAt: string; updatedAt: string
+}
+export interface NotesBoard { labels: NoteLabel[]; notes: Note[] }
+export interface NoteInput {
+  title?: string; body?: string; checklist?: boolean; items?: NoteItem[]; color?: NoteColor
+  pinned?: boolean; archived?: boolean; trashed?: boolean; labelIds?: number[]
+}

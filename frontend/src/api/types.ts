@@ -126,3 +126,22 @@ export interface NoteInput {
   title?: string; body?: string; checklist?: boolean; items?: NoteItem[]; color?: NoteColor
   pinned?: boolean; archived?: boolean; trashed?: boolean; labelIds?: number[]
 }
+
+export type CardState = 'NEW' | 'LEARNING' | 'REVIEW' | 'RELEARNING'
+/** newCount: thẻ mới còn được học hôm nay; learning: đang học đến lượt; due: đến hạn ôn; unseen: chưa học */
+export interface VocabDeck {
+  id: number; name: string; description?: string; language: string; newPerDay: number
+  total: number; unseen: number; newCount: number; learning: number; due: number; mature: number
+}
+export interface VocabOverview { today: string; reviewedToday: number; streak: number; decks: VocabDeck[] }
+export interface VocabCard {
+  id: number; deckId: number; term: string; meaning: string; pronunciation?: string; example?: string
+  state: CardState; intervalDays: number; dueAt?: string; reps: number; lapses: number; ease: number
+}
+export interface DeckCards { deck: VocabDeck; cards: VocabCard[] }
+export interface StudyCard { card: VocabCard; language: string; intervals: string[] }
+export interface StudyQueue {
+  queue: StudyCard[]; newCount: number; learningCount: number; reviewCount: number; nextAt?: string; reviewedToday: number
+}
+export interface CardInput { term: string; meaning: string; pronunciation?: string; example?: string }
+export interface DeckInput { name: string; description?: string; language?: string; newPerDay?: number }

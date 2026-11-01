@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
-import type { Expense, HabitOverview, Moment, MonthlySummary, NotesBoard, Plan, Profile, TaskBoard, WeekMenu, WeightLog } from '../api/types'
+import type { Expense, HabitOverview, Moment, MonthlySummary, DeckCards, NotesBoard, Plan, Profile, StudyQueue, TaskBoard, VocabOverview, WeekMenu, WeightLog } from '../api/types'
 
 export const keys = {
   profile: ['profile'] as const,
@@ -13,6 +13,9 @@ export const keys = {
   habits: ['habits'] as const,
   tasks: ['tasks'] as const,
   notes: ['notes'] as const,
+  vocab: ['vocab'] as const,
+  deckCards: (id: number) => ['vocab', 'deck', id] as const,
+  study: (deckId?: number) => ['vocab', 'study', deckId ?? 'all'] as const,
 }
 
 export const useProfile = () => useQuery({ queryKey: keys.profile, queryFn: () => api.get<Profile | null>('/api/body/profile') })
@@ -40,3 +43,16 @@ export const useHabits = () => useQuery({ queryKey: keys.habits, queryFn: () => 
 export const useTasks = () => useQuery({ queryKey: keys.tasks, queryFn: () => api.get<TaskBoard>('/api/tasks') })
 
 export const useNotes = () => useQuery({ queryKey: keys.notes, queryFn: () => api.get<NotesBoard>('/api/notes') })
+
+export const useVocab = () => useQuery({ queryKey: keys.vocab, queryFn: () => api.get<VocabOverview>('/api/vocab') })
+
+export const useDeckCards = (id: number) =>
+  useQuery({ queryKey: keys.deckCards(id), queryFn: () => api.get<DeckCards>(`/api/vocab/decks/${id}/cards`) })
+
+export const useStudy = (deckId?: number) =>
+  useQuery({
+    queryKey: keys.study(deckId),
+    queryFn: () => api.get<StudyQueue>(`/api/vocab/study${deckId ? `?deckId=${deckId}` : ''}`),
+    // Phiên học quản lý hàng đợi tại chỗ, không tự tải lại giữa chừng
+    staleTime: Infinity, refetchOnWindowFocus: false, gcTime: 0,
+  })

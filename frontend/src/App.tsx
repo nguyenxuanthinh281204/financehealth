@@ -15,6 +15,10 @@ const Habits = lazy(() => import('./pages/Habits'))
 const Tasks = lazy(() => import('./pages/Tasks'))
 const Notes = lazy(() => import('./pages/Notes'))
 const Settings = lazy(() => import('./pages/Settings'))
+const VocabDecks = lazy(() => import('./pages/vocab/Decks'))
+const VocabDeck = lazy(() => import('./pages/vocab/Deck'))
+const VocabStudy = lazy(() => import('./pages/vocab/Study'))
+const VocabPractice = lazy(() => import('./pages/vocab/Practice'))
 
 export default function App() {
   const { user, loading } = useAuth()
@@ -37,6 +41,10 @@ export default function App() {
         <Route path="thoi-quen" element={<Habits />} />
         <Route path="viec-can-lam" element={<Tasks />} />
         <Route path="ghi-chu" element={<Notes />} />
+        <Route path="tu-vung" element={<VocabDecks />} />
+        <Route path="tu-vung/on-tap" element={<VocabStudy />} />
+        <Route path="tu-vung/:deckId" element={<VocabDeck />} />
+        <Route path="tu-vung/:deckId/:mode" element={<VocabPractice />} />
         <Route path="tong-ket" element={<Summary />} />
         <Route path="cai-dat" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />

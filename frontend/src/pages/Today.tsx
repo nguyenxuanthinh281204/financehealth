@@ -8,6 +8,7 @@ import { Empty, MacroBar, Ring } from '../components/ui'
 import { HabitChecklist } from '../components/habits'
 import { TodayTasksCard } from '../components/tasks'
 import { TodayNotesCard } from '../components/notes'
+import { TodayVocabCard } from '../components/vocab'
 import type { HabitKind } from '../api/types'
 import ExpenseSheet from './expenses/ExpenseSheet'
 import CameraSheet from './moments/CameraSheet'
@@ -77,6 +78,8 @@ export default function Today() {
         <TodayTasksCard />
 
         <TodayNotesCard />
+
+        <TodayVocabCard />
 
         {macros && (
           <div className="card">

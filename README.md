@@ -8,6 +8,7 @@ Web app cá nhân (dùng được như app trên điện thoại) để quản l
 | ⚖️ Cơ thể & macro | Nhập giới tính, ngày sinh, chiều cao, cân nặng, mức tập, mục tiêu. Tính BMI (ngưỡng châu Á), BMR (Mifflin-St Jeor), TDEE, calo và protein/carb/fat mỗi ngày. Lịch sử cân nặng có biểu đồ. |
 | 🥗 Thực đơn tuần | 8 nguyên liệu luộc cố định (trứng gà, ức gà, cơm trắng, xúc xích, cà rốt, bí đỏ, táo, bánh mì). **Mỗi tuần tạo một lần** cho cả 7 ngày (thứ Hai đến Chủ nhật): hệ thống xếp vào sáng/trưa/tối và **tính số gram từng món** cho sát macro, kèm danh sách cần mua cả tuần. Có thể sửa gram từng món. |
 | 📸 Khoảnh khắc | Như Locket: chụp ảnh hoặc quay **video tối đa 5 giây** ngay trong app, xem lại theo ngày. |
+| 🗂️ Từ vựng | Như Anki/Quizlet: bộ thẻ (từ, nghĩa, phiên âm, ví dụ), nhập nhanh cả danh sách từ Quizlet/Anki/Excel. **Ôn tập lặp lại ngắt quãng** (SM-2 như Anki, 4 nút Quên/Khó/Được/Dễ, giới hạn thẻ mới mỗi ngày), chế độ **thẻ ghi nhớ** lật/vuốt và **kiểm tra** trắc nghiệm + tự luận, đọc phát âm bằng giọng của trình duyệt. |
 | 📊 Tổng kết tháng | Tổng chi, so với tháng trước, chi theo danh mục và theo ngày, nơi chi nhiều nhất, cân nặng đầu/cuối tháng, số ngày có thực đơn, khoảnh khắc. |
 
 ## Công nghệ

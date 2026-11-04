@@ -710,21 +710,21 @@ a.btn[aria-disabled="true"] { pointer-events: none; }
   -webkit-mask-image: linear-gradient(to top, #000 55%, transparent);
   mask-image: linear-gradient(to top, #000 55%, transparent);
 }
-.bg-waves { opacity: .6; }
+.bg-waves { opacity: .8; }
 .bg-rain { opacity: .85; }
 :root[data-bg-level="strong"] .bg-fire { opacity: .7; }
-:root[data-bg-level="strong"] .bg-waves { opacity: .75; }
+:root[data-bg-level="strong"] .bg-waves { opacity: .9; }
 :root[data-bg-level="strong"] .bg-rain { opacity: 1; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .bg-fire { opacity: .8; }
-  :root:not([data-theme="light"]) .bg-waves { opacity: .7; }
+  :root:not([data-theme="light"]) .bg-waves { opacity: .85; }
   :root[data-bg-level="strong"]:not([data-theme="light"]) .bg-fire { opacity: .95; }
-  :root[data-bg-level="strong"]:not([data-theme="light"]) .bg-waves { opacity: .85; }
+  :root[data-bg-level="strong"]:not([data-theme="light"]) .bg-waves { opacity: .95; }
 }
 :root[data-theme="dark"] .bg-fire { opacity: .8; }
-:root[data-theme="dark"] .bg-waves { opacity: .7; }
+:root[data-theme="dark"] .bg-waves { opacity: .85; }
 :root[data-theme="dark"][data-bg-level="strong"] .bg-fire { opacity: .95; }
-:root[data-theme="dark"][data-bg-level="strong"] .bg-waves { opacity: .85; }
+:root[data-theme="dark"][data-bg-level="strong"] .bg-waves { opacity: .95; }
 /* Thanh bên hơi trong để thấy nền động phía sau */
 @media (min-width: 900px) {
   :root[data-bg] .sidebar {

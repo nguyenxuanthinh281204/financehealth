@@ -34,9 +34,8 @@ function BgCanvas({ effect, level }: { effect: Exclude<BgEffect, 'off'>; level: 
 
   useEffect(() => {
     const canvas = ref.current
-    const ctx = canvas?.getContext('2d', { alpha: true })
-    if (!canvas || !ctx) return
-    const renderer = def.create(ctx, level)
+    const renderer = canvas && def.create(canvas, level)
+    if (!canvas || !renderer) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
     let W = 0, H = 0
 

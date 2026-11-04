@@ -13,7 +13,8 @@ export interface BgEffectDef {
   height: Record<BgLevel, number>
   /** Số pixel CSS cho mỗi pixel canvas (lớn hơn = nhẹ hơn, mờ hơn). */
   scale: () => number
-  create: (ctx: CanvasRenderingContext2D, level: BgLevel) => BgRenderer
+  /** Tự lấy context (2D hoặc WebGL) từ canvas; trả null nếu trình duyệt không hỗ trợ. */
+  create: (canvas: HTMLCanvasElement, level: BgLevel) => BgRenderer | null
 }
 
 /** Giao diện đang tối? Đọc color-scheme thật trên <html> nên đúng cả khi chọn "Theo máy". */

@@ -15,7 +15,9 @@ interface Ripple { x: number; y: number; r: number; max: number; life: number }
 export const rain: BgEffectDef = {
   height: { soft: 1, strong: 1 },
   scale: () => 1,
-  create(ctx, level) {
+  create(canvas, level) {
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
     const cfg = CONFIG[level]
     let W = 0, H = 0
     let drops: Drop[] = []
@@ -70,7 +72,7 @@ export const rain: BgEffectDef = {
         draw()
       },
       frame(dt) {
-        if (++themeCheck % 30 === 0) dark = isDarkTheme()
+        if (themeCheck++ % 30 === 0) dark = isDarkTheme() // khung đầu + mỗi ~1 giây
         for (let i = 0; i < drops.length; i++) {
           const d = drops[i]
           d.y += d.v * dt

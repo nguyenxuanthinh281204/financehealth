@@ -12,7 +12,9 @@ const CONFIG = {
 export const fire: BgEffectDef = {
   height: { soft: 0.42, strong: 0.62 },
   scale: () => (window.innerWidth < 700 ? 4 : 6),
-  create(ctx, level) {
+  create(canvas, level) {
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
     const cfg = CONFIG[level]
     const palette = buildPalette()
     let W = 0, H = 0

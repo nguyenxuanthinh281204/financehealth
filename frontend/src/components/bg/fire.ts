@@ -1,68 +1,28 @@
-import { useEffect, useRef } from 'react'
-import { useFireLevel, type FireLevel } from '../lib/fire'
+import type { BgEffectDef } from './types'
 
 /**
- * Lớp lửa cháy nằm sau toàn bộ giao diện.
- * Mô phỏng nhiệt ở độ phân giải thấp (1 ô = 4–6 px) rồi để trình duyệt phóng to mượt,
- * nên mỗi khung hình chỉ tính vài chục nghìn ô — nhẹ cả trên điện thoại.
- * Giới hạn 30 khung/giây, dừng khi tab ẩn, đứng yên khi máy bật "giảm chuyển động".
+ * Lửa cháy: mô phỏng nhiệt ở độ phân giải thấp (1 ô = 4–6 px) rồi để trình duyệt phóng to mượt.
+ * Nhiệt bốc lên từ đáy, bị một bản đồ làm nguội (trôi lên mỗi khung) cắt thành các lưỡi lửa.
  */
-/** Màn hẹp dùng ô nhỏ hơn để lưỡi lửa không bị thô. */
-const cellSize = () => (window.innerWidth < 700 ? 4 : 6)
-const FPS = 30
-
-const CONFIG: Record<Exclude<FireLevel, 'off'>, { height: number; cool: number; embers: number }> = {
-  soft: { height: 0.42, cool: 1.9, embers: 0.06 },
-  strong: { height: 0.62, cool: 1.35, embers: 0.12 },
+const CONFIG = {
+  soft: { cool: 1.9, embers: 0.06 },
+  strong: { cool: 1.35, embers: 0.12 },
 }
 
-export default function FireBackground() {
-  const level = useFireLevel()
-
-  useEffect(() => {
-    const root = document.documentElement
-    if (level === 'off') root.removeAttribute('data-fire')
-    else root.setAttribute('data-fire', level)
-    return () => root.removeAttribute('data-fire')
-  }, [level])
-
-  if (level === 'off') return null
-  return <FireCanvas level={level} />
-}
-
-function FireCanvas({ level }: { level: Exclude<FireLevel, 'off'> }) {
-  const ref = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    const canvas = ref.current
-    const ctx = canvas?.getContext('2d', { alpha: true })
-    if (!canvas || !ctx) return
+export const fire: BgEffectDef = {
+  height: { soft: 0.42, strong: 0.62 },
+  scale: () => (window.innerWidth < 700 ? 4 : 6),
+  create(canvas, level) {
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
     const cfg = CONFIG[level]
     const palette = buildPalette()
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
-
     let W = 0, H = 0
     let heat = new Float32Array(0), next = new Float32Array(0)
     let coolMap = new Float32Array(0), coolH = 0, scroll = 0
     let image: ImageData | null = null
     let embers: { x: number; y: number; vx: number; vy: number; life: number }[] = []
     let t = 0
-
-    const setup = () => {
-      const cell = cellSize()
-      W = Math.max(8, Math.ceil(window.innerWidth / cell))
-      H = Math.max(8, Math.ceil((window.innerHeight * cfg.height) / cell))
-      canvas.width = W
-      canvas.height = H
-      heat = new Float32Array(W * (H + 2))
-      next = new Float32Array(W * (H + 2))
-      coolH = H * 2
-      coolMap = buildCoolMap(W, coolH, cfg.cool / H)
-      image = ctx.createImageData(W, H)
-      embers = []
-      // Cho lửa bén sẵn để lần đầu bật không phải chờ cháy lên
-      for (let i = 0; i < H * 1.5; i++) step()
-    }
 
     const step = () => {
       t += 1
@@ -74,7 +34,7 @@ function FireCanvas({ level }: { level: Exclude<FireLevel, 'off'> }) {
         heat[(rows - 1) * W + x] = v
         heat[(rows - 2) * W + x] = v
       }
-      // Nhiệt bốc lên: trung bình 4 ô bên dưới trừ đi bản đồ làm nguội đang trôi lên
+      // Nhiệt bốc lên: trung bình 4 ô bên dưới trừ đi bản đồ làm nguội
       for (let y = 0; y < rows - 2; y++) {
         const cy = ((y + scroll) % coolH) * W
         const r1 = (y + 1) * W, r2 = (y + 2) * W
@@ -118,45 +78,22 @@ function FireCanvas({ level }: { level: Exclude<FireLevel, 'off'> }) {
       ctx.putImageData(image, 0, 0)
     }
 
-    let raf = 0, last = 0
-    const loop = (now: number) => {
-      raf = requestAnimationFrame(loop)
-      if (now - last < 1000 / FPS - 2) return
-      last = now
-      step()
-      draw()
+    return {
+      resize(w, h) {
+        W = w; H = h
+        heat = new Float32Array(W * (H + 2))
+        next = new Float32Array(W * (H + 2))
+        coolH = H * 2
+        coolMap = buildCoolMap(W, coolH, cfg.cool / H)
+        image = ctx.createImageData(W, H)
+        embers = []
+        // Cho lửa bén sẵn để lần đầu bật không phải chờ cháy lên
+        for (let i = 0; i < H * 1.5; i++) step()
+        draw()
+      },
+      frame() { step(); draw() },
     }
-    const start = () => {
-      cancelAnimationFrame(raf)
-      if (reduced.matches || document.hidden) { draw(); return }
-      raf = requestAnimationFrame(loop)
-    }
-
-    let resizeTimer = 0
-    const onResize = () => {
-      clearTimeout(resizeTimer)
-      resizeTimer = window.setTimeout(() => {
-        const cell = cellSize()
-        const w = Math.ceil(window.innerWidth / cell), h = Math.ceil((window.innerHeight * cfg.height) / cell)
-        if (w !== W || Math.abs(h - H) > 4) { setup(); start() }
-      }, 150)
-    }
-
-    setup()
-    start()
-    window.addEventListener('resize', onResize)
-    document.addEventListener('visibilitychange', start)
-    reduced.addEventListener('change', start)
-    return () => {
-      cancelAnimationFrame(raf)
-      clearTimeout(resizeTimer)
-      window.removeEventListener('resize', onResize)
-      document.removeEventListener('visibilitychange', start)
-      reduced.removeEventListener('change', start)
-    }
-  }, [level])
-
-  return <canvas ref={ref} className="fire-bg" aria-hidden="true" style={{ height: `${CONFIG[level].height * 100}vh` }} />
+  },
 }
 
 /** Bảng màu theo nhiệt: trong suốt → đỏ thẫm → đỏ → cam → vàng → gần trắng. */
@@ -214,5 +151,5 @@ function buildCoolMap(w: number, h: number, base: number) {
 
 /** Nhiễu mượt 1 chiều (tổng vài sóng sin lệch pha) trong khoảng ~[-1, 1]. */
 function lowNoise(x: number, t: number) {
-  return (Math.sin(x * 1.0 + t * 1.3) * 0.5 + Math.sin(x * 2.3 - t * 0.9 + 1.7) * 0.3 + Math.sin(x * 0.45 + t * 0.6 + 4.1) * 0.2)
+  return Math.sin(x + t * 1.3) * 0.5 + Math.sin(x * 2.3 - t * 0.9 + 1.7) * 0.3 + Math.sin(x * 0.45 + t * 0.6 + 4.1) * 0.2
 }

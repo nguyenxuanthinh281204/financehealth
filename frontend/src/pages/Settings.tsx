@@ -1,11 +1,15 @@
 import { useState, type FormEvent } from 'react'
-import { Check, Eye, EyeOff, LogOut } from 'lucide-react'
+import { Ban, Check, CloudLightning, CloudRain, Eye, EyeOff, Flame, Leaf, LogOut, Snowflake, Waves, type LucideIcon } from 'lucide-react'
 import { api } from '../api/client'
 import type { AccentColor, AuthResponse, ThemeMode, User } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { ErrorText, Segmented } from '../components/ui'
 import { ACCENTS, THEME_MODES } from '../lib/theme'
-import { FIRE_LEVELS, setFireLevel, useFireLevel } from '../lib/fire'
+import { BG_EFFECTS, BG_LEVELS, setBackground, useBackground, type BgEffect } from '../lib/background'
+
+const BG_ICONS: Record<BgEffect, LucideIcon> = {
+  off: Ban, fire: Flame, waves: Waves, rain: CloudRain, storm: CloudLightning, snow: Snowflake, leaves: Leaf,
+}
 
 export default function Settings() {
   const { user, logout } = useAuth()
@@ -86,7 +90,7 @@ function ProfileCard({ user }: { user: User }) {
 
 function AppearanceCard({ user }: { user: User }) {
   const { updateUser } = useAuth()
-  const fire = useFireLevel()
+  const bg = useBackground()
   const [error, setError] = useState<unknown>(null)
 
   // Đổi ngay trên giao diện, lỗi thì trả lại như cũ
@@ -126,8 +130,23 @@ function AppearanceCard({ user }: { user: User }) {
         </div>
       </div>
       <div className="field" style={{ marginTop: 16 }}>
-        <span>Nền lửa cháy</span>
-        <Segmented value={fire} options={FIRE_LEVELS} onChange={setFireLevel} />
+        <span>Nền động</span>
+        <div className="bg-picker" role="radiogroup" aria-label="Nền động">
+          {BG_EFFECTS.map((e) => {
+            const Icon = BG_ICONS[e.value]
+            const on = bg.effect === e.value
+            return (
+              <button key={e.value} type="button" role="radio" aria-checked={on}
+                className={`bg-option${on ? ' on' : ''}`} onClick={() => setBackground({ effect: e.value })}>
+                <Icon size={20} />
+                <span>{e.label}</span>
+              </button>
+            )
+          })}
+        </div>
+        {bg.effect !== 'off' && (
+          <Segmented value={bg.level} options={BG_LEVELS} onChange={(level) => setBackground({ level })} />
+        )}
         <div className="small muted">Chỉ lưu trên thiết bị này. Tự đứng yên nếu máy bật giảm chuyển động.</div>
       </div>
       {error ? <div style={{ marginTop: 12 }}><ErrorText error={error} /></div> : null}

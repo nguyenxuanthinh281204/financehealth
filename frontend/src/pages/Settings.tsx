@@ -1,11 +1,15 @@
 import { useState, type FormEvent } from 'react'
-import { Check, Eye, EyeOff, LogOut } from 'lucide-react'
+import { Ban, Check, CloudLightning, CloudRain, Eye, EyeOff, Flame, Leaf, LogOut, Snowflake, Waves, type LucideIcon } from 'lucide-react'
 import { api } from '../api/client'
 import type { AccentColor, AuthResponse, ThemeMode, User } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { ErrorText, Segmented } from '../components/ui'
 import { ACCENTS, THEME_MODES } from '../lib/theme'
-import { BG_EFFECTS, BG_LEVELS, setBackground, useBackground } from '../lib/background'
+import { BG_EFFECTS, BG_LEVELS, setBackground, useBackground, type BgEffect } from '../lib/background'
+
+const BG_ICONS: Record<BgEffect, LucideIcon> = {
+  off: Ban, fire: Flame, waves: Waves, rain: CloudRain, storm: CloudLightning, snow: Snowflake, leaves: Leaf,
+}
 
 export default function Settings() {
   const { user, logout } = useAuth()
@@ -127,7 +131,19 @@ function AppearanceCard({ user }: { user: User }) {
       </div>
       <div className="field" style={{ marginTop: 16 }}>
         <span>Nền động</span>
-        <Segmented value={bg.effect} options={BG_EFFECTS} onChange={(effect) => setBackground({ effect })} />
+        <div className="bg-picker" role="radiogroup" aria-label="Nền động">
+          {BG_EFFECTS.map((e) => {
+            const Icon = BG_ICONS[e.value]
+            const on = bg.effect === e.value
+            return (
+              <button key={e.value} type="button" role="radio" aria-checked={on}
+                className={`bg-option${on ? ' on' : ''}`} onClick={() => setBackground({ effect: e.value })}>
+                <Icon size={20} />
+                <span>{e.label}</span>
+              </button>
+            )
+          })}
+        </div>
         {bg.effect !== 'off' && (
           <Segmented value={bg.level} options={BG_LEVELS} onChange={(level) => setBackground({ level })} />
         )}

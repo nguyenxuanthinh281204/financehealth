@@ -1,16 +1,19 @@
 import { useEffect, useRef } from 'react'
 import { useBackground, type BgEffect, type BgLevel } from '../lib/background'
 import { fire } from './bg/fire'
+import { leaves } from './bg/leaves'
 import { rain } from './bg/rain'
+import { snow } from './bg/snow'
+import { storm } from './bg/storm'
 import type { BgEffectDef } from './bg/types'
 import { waves } from './bg/waves'
 
 /**
- * Nền động (lửa / sóng nước / mưa) nằm sau toàn bộ giao diện, không bắt chạm.
+ * Nền động (lửa / sóng nước / mưa / giông sét / tuyết / lá bay) nằm sau toàn bộ giao diện, không bắt chạm.
  * Giới hạn 30 khung/giây, dừng khi tab ẩn, đứng yên một khung khi máy bật "giảm chuyển động".
  */
 const FPS = 30
-const EFFECTS: Record<Exclude<BgEffect, 'off'>, BgEffectDef> = { fire, waves, rain }
+const EFFECTS: Record<Exclude<BgEffect, 'off'>, BgEffectDef> = { fire, waves, rain, storm, snow, leaves }
 
 export default function AnimatedBackground() {
   const { effect, level } = useBackground()

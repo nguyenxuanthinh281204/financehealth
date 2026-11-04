@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
 /** Nền động phía sau giao diện. Lưu theo thiết bị (máy yếu có thể tắt riêng mà không ảnh hưởng máy khác). */
-export type BgEffect = 'off' | 'fire' | 'waves' | 'rain'
+export type BgEffect = 'off' | 'fire' | 'waves' | 'rain' | 'storm' | 'snow' | 'leaves'
 export type BgLevel = 'soft' | 'strong'
 export interface BgSetting { effect: BgEffect; level: BgLevel }
 
@@ -10,6 +10,9 @@ export const BG_EFFECTS: { value: BgEffect; label: string }[] = [
   { value: 'fire', label: 'Lửa' },
   { value: 'waves', label: 'Sóng nước' },
   { value: 'rain', label: 'Mưa' },
+  { value: 'storm', label: 'Giông sét' },
+  { value: 'snow', label: 'Tuyết' },
+  { value: 'leaves', label: 'Lá bay' },
 ]
 
 export const BG_LEVELS: { value: BgLevel; label: string }[] = [
@@ -19,7 +22,7 @@ export const BG_LEVELS: { value: BgLevel; label: string }[] = [
 
 const KEY = 'fh.bg'
 const LEGACY_FIRE_KEY = 'fh.fire'
-const EFFECT_VALUES: BgEffect[] = ['off', 'fire', 'waves', 'rain']
+const EFFECT_VALUES: BgEffect[] = BG_EFFECTS.map((e) => e.value)
 const listeners = new Set<() => void>()
 
 function read(): BgSetting {

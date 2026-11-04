@@ -5,7 +5,7 @@ import type { AccentColor, AuthResponse, ThemeMode, User } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { ErrorText, Segmented } from '../components/ui'
 import { ACCENTS, THEME_MODES } from '../lib/theme'
-import { FIRE_LEVELS, setFireLevel, useFireLevel } from '../lib/fire'
+import { BG_EFFECTS, BG_LEVELS, setBackground, useBackground } from '../lib/background'
 
 export default function Settings() {
   const { user, logout } = useAuth()
@@ -86,7 +86,7 @@ function ProfileCard({ user }: { user: User }) {
 
 function AppearanceCard({ user }: { user: User }) {
   const { updateUser } = useAuth()
-  const fire = useFireLevel()
+  const bg = useBackground()
   const [error, setError] = useState<unknown>(null)
 
   // Đổi ngay trên giao diện, lỗi thì trả lại như cũ
@@ -126,8 +126,11 @@ function AppearanceCard({ user }: { user: User }) {
         </div>
       </div>
       <div className="field" style={{ marginTop: 16 }}>
-        <span>Nền lửa cháy</span>
-        <Segmented value={fire} options={FIRE_LEVELS} onChange={setFireLevel} />
+        <span>Nền động</span>
+        <Segmented value={bg.effect} options={BG_EFFECTS} onChange={(effect) => setBackground({ effect })} />
+        {bg.effect !== 'off' && (
+          <Segmented value={bg.level} options={BG_LEVELS} onChange={(level) => setBackground({ level })} />
+        )}
         <div className="small muted">Chỉ lưu trên thiết bị này. Tự đứng yên nếu máy bật giảm chuyển động.</div>
       </div>
       {error ? <div style={{ marginTop: 12 }}><ErrorText error={error} /></div> : null}

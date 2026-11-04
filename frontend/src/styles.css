@@ -700,3 +700,25 @@ a.btn[aria-disabled="true"] { pointer-events: none; }
 .quiz-feedback.good { background: var(--primary-soft); }
 .quiz-feedback.bad { background: var(--danger-soft); }
 .quiz-feedback.bad > div > b:first-child { color: var(--danger); }
+
+/* Nền lửa cháy (Cài đặt › Giao diện) — nằm sau mọi nội dung, không bắt chạm */
+.fire-bg {
+  position: fixed; left: 0; right: 0; bottom: 0; width: 100%; z-index: -1;
+  pointer-events: none; image-rendering: auto; opacity: .55;
+  -webkit-mask-image: linear-gradient(to top, #000 55%, transparent);
+  mask-image: linear-gradient(to top, #000 55%, transparent);
+}
+:root[data-fire="strong"] .fire-bg { opacity: .7; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fire-bg { opacity: .8; }
+  :root[data-fire="strong"]:not([data-theme="light"]) .fire-bg { opacity: .95; }
+}
+:root[data-theme="dark"] .fire-bg { opacity: .8; }
+:root[data-theme="dark"][data-fire="strong"] .fire-bg { opacity: .95; }
+/* Thanh bên hơi trong để thấy ánh lửa phía sau */
+@media (min-width: 900px) {
+  :root[data-fire] .sidebar {
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  }
+}

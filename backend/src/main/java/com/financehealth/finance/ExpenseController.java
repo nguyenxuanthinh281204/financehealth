@@ -4,10 +4,8 @@ import com.financehealth.common.CurrentUser;
 import com.financehealth.finance.ExpenseDtos.*;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -42,10 +40,5 @@ public class ExpenseController {
     public ResponseEntity<Void> delete(@PathVariable long id) {
         service.delete(CurrentUser.id(), id);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping(value = "/scan-receipt", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ScanResult scan(@RequestParam("file") MultipartFile file) {
-        return service.scanReceipt(CurrentUser.id(), file);
     }
 }

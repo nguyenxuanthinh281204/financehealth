@@ -25,7 +25,7 @@ export default function Expenses() {
   return (
     <>
       <div className="page-head">
-        <div><h1>Chi tiêu</h1><div className="sub">Nhập tay hoặc chụp hóa đơn để tự điền</div></div>
+        <div><h1>Chi tiêu</h1><div className="sub">Ghi lại từng khoản chi, xem theo tháng</div></div>
         <button className="btn sm" onClick={() => setEditing('new')}><Plus size={16} /> Thêm</button>
       </div>
 
@@ -56,7 +56,7 @@ export default function Expenses() {
 
       {expenses.isLoading ? <Loading /> : byDay.length === 0 ? (
         <div className="card" style={{ marginTop: 12 }}>
-          <Empty emoji="🧾" title="Chưa có khoản chi nào">Bấm nút + để thêm, hoặc chụp hóa đơn cho nhanh.</Empty>
+          <Empty emoji="🧾" title="Chưa có khoản chi nào">Bấm nút + để thêm khoản chi đầu tiên.</Empty>
         </div>
       ) : byDay.map(([day, items]) => (
         <div key={day}>

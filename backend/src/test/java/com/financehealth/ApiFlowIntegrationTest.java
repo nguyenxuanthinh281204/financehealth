@@ -107,13 +107,6 @@ class ApiFlowIntegrationTest {
         call(post("/api/expenses").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"spentOn\":\"" + today + "\",\"amount\":320000,\"category\":\"GROCERIES\",\"items\":[{\"name\":\"Ức gà\",\"quantity\":1,\"price\":120000}]}"), 200);
 
-        // Quét hóa đơn khi chưa cấu hình AI: vẫn lưu ảnh, báo nhập tay
-        JsonNode scan = call(multipart("/api/expenses/scan-receipt")
-                .file(new MockMultipartFile("file", "bill.jpg", "image/jpeg", new byte[]{(byte) 0xFF, (byte) 0xD8, 1, 2}))
-                .header("Authorization", bearer), 200);
-        assertThat(scan.get("enabled").asBoolean()).isFalse();
-        assertThat(scan.get("receiptKey").asText()).startsWith("receipts/");
-
         // Ảnh khoảnh khắc + link file có chữ ký
         JsonNode moment = call(multipart("/api/moments")
                 .file(new MockMultipartFile("file", "a.jpg", "image/jpeg", new byte[]{(byte) 0xFF, (byte) 0xD8, 9}))

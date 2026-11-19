@@ -39,6 +39,7 @@ public class Expense {
     @Column(name = "items_json")
     private String itemsJson;
 
+    /** Ảnh hóa đơn của khoản chi cũ (tính năng quét đã bỏ), chỉ đọc. */
     @Column(name = "receipt_key")
     private String receiptKey;
 
@@ -66,6 +67,5 @@ public class Expense {
     public String getItemsJson() { return itemsJson; }
     public void setItemsJson(String itemsJson) { this.itemsJson = itemsJson; }
     public String getReceiptKey() { return receiptKey; }
-    public void setReceiptKey(String receiptKey) { this.receiptKey = receiptKey; }
     public Instant getCreatedAt() { return createdAt; }
 }

@@ -1,23 +1,19 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, ScanLine, Trash2, X } from 'lucide-react'
+import { Plus, Trash2, X } from 'lucide-react'
 import { api } from '../../api/client'
-import type { Expense, ExpenseCategory, ExpenseInput, LineItem, ScanResult } from '../../api/types'
+import type { Expense, ExpenseCategory, ExpenseInput, LineItem } from '../../api/types'
 import { EXPENSE_CATEGORIES, isoDate, money } from '../../lib/format'
-import { toJpeg } from '../../lib/image'
-import { ErrorText, Sheet, Spinner } from '../../components/ui'
+import { ErrorText, Sheet } from '../../components/ui'
 
 export default function ExpenseSheet({ onClose, expense }: { onClose: () => void; expense?: Expense }) {
   const qc = useQueryClient()
-  const fileRef = useRef<HTMLInputElement>(null)
   const [spentOn, setSpentOn] = useState(expense?.spentOn ?? isoDate())
   const [amount, setAmount] = useState(expense ? String(Math.round(expense.amount)) : '')
   const [category, setCategory] = useState<ExpenseCategory>(expense?.category ?? 'FOOD')
   const [merchant, setMerchant] = useState(expense?.merchant ?? '')
   const [note, setNote] = useState(expense?.note ?? '')
   const [items, setItems] = useState<LineItem[]>(expense?.items ?? [])
-  const [receipt, setReceipt] = useState<{ key: string | null; url: string | null }>({ key: null, url: expense?.receiptUrl ?? null })
-  const [scanMsg, setScanMsg] = useState<string | null>(null)
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['expenses'] })
@@ -25,30 +21,12 @@ export default function ExpenseSheet({ onClose, expense }: { onClose: () => void
     qc.invalidateQueries({ queryKey: ['habits'] })
   }
 
-  const scan = useMutation({
-    mutationFn: async (file: File) => {
-      const fd = new FormData()
-      fd.append('file', await toJpeg(file), 'receipt.jpg')
-      return api.post<ScanResult>('/api/expenses/scan-receipt', fd)
-    },
-    onSuccess: (r) => {
-      setReceipt({ key: r.receiptKey, url: r.receiptUrl })
-      setScanMsg(r.message ?? (r.total ? 'Đã đọc hóa đơn. Bạn kiểm tra lại rồi lưu nhé.' : null))
-      if (r.total) setAmount(String(Math.round(r.total)))
-      if (r.merchant) setMerchant(r.merchant)
-      if (r.date) setSpentOn(r.date)
-      if (r.category) setCategory(r.category)
-      if (r.items?.length) setItems(r.items)
-    },
-  })
-
   const save = useMutation({
     mutationFn: () => {
       const body: ExpenseInput = {
         spentOn, amount: Number(amount.replace(/[^\d]/g, '')), category,
         merchant: merchant || undefined, note: note || undefined,
         items: items.filter((i) => i.name.trim()),
-        receiptKey: receipt.key ?? undefined,
       }
       return expense ? api.put(`/api/expenses/${expense.id}`, body) : api.post('/api/expenses', body)
     },
@@ -60,23 +38,12 @@ export default function ExpenseSheet({ onClose, expense }: { onClose: () => void
     onSuccess: () => { invalidate(); onClose() },
   })
 
-  const pick = () => fileRef.current?.click()
   const submit = (e: FormEvent) => { e.preventDefault(); save.mutate() }
   const amountView = amount ? Number(amount.replace(/[^\d]/g, '')).toLocaleString('vi-VN') : ''
 
   return (
     <Sheet title={expense ? 'Sửa khoản chi' : 'Thêm khoản chi'} onClose={onClose}>
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) scan.mutate(f); e.target.value = '' }} />
-
-      {!expense && (
-        <button type="button" className="btn secondary block" onClick={pick} disabled={scan.isPending} style={{ marginBottom: 14 }}>
-          {scan.isPending ? <><Spinner /> Đang đọc hóa đơn…</> : <><ScanLine size={18} /> Chụp / chọn ảnh hóa đơn</>}
-        </button>
-      )}
-      {receipt.url && <img src={receipt.url} alt="Ảnh hóa đơn" className="receipt-thumb" style={{ marginBottom: 12 }} />}
-      {scanMsg && <div className="notice" style={{ marginBottom: 12 }}>{scanMsg}</div>}
-      <ErrorText error={scan.error} />
+      {expense?.receiptUrl && <img src={expense.receiptUrl} alt="Ảnh hóa đơn" className="receipt-thumb" style={{ marginBottom: 12 }} />}
 
       <form className="form" onSubmit={submit}>
         <label className="field"><span>Số tiền</span>

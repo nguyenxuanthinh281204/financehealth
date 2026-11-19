@@ -4,7 +4,7 @@ Web app cá nhân (dùng được như app trên điện thoại) để quản l
 
 | Tính năng | Mô tả |
 |---|---|
-| 💸 Chi tiêu | Nhập tay hoặc **chụp hóa đơn**, AI đọc cửa hàng, ngày, tổng tiền, từng món (hỗ trợ bill tiếng Việt). Lọc theo danh mục, xem theo tháng. |
+| 💸 Chi tiêu | Nhập tay số tiền, danh mục, cửa hàng, ghi chú và từng món. Lọc theo danh mục, xem theo tháng. |
 | ⚖️ Cơ thể & macro | Nhập giới tính, ngày sinh, chiều cao, cân nặng, mức tập, mục tiêu. Tính BMI (ngưỡng châu Á), BMR (Mifflin-St Jeor), TDEE, calo và protein/carb/fat mỗi ngày. Lịch sử cân nặng có biểu đồ. |
 | 🥗 Thực đơn tuần | 8 nguyên liệu luộc cố định (trứng gà, ức gà, cơm trắng, xúc xích, cà rốt, bí đỏ, táo, bánh mì). **Mỗi tuần tạo một lần** cho cả 7 ngày (thứ Hai đến Chủ nhật): hệ thống xếp vào sáng/trưa/tối và **tính số gram từng món** cho sát macro, kèm danh sách cần mua cả tuần. Có thể sửa gram từng món. |
 | 📸 Khoảnh khắc | Như Locket: chụp ảnh hoặc quay **video tối đa 5 giây** ngay trong app, xem lại theo ngày. |
@@ -17,7 +17,6 @@ Web app cá nhân (dùng được như app trên điện thoại) để quản l
 - **Backend**: Spring Boot 3.5 (Java 21), Spring Security + JWT, JPA, Flyway.
 - **Database**: PostgreSQL 16.
 - **Lưu file**: dịch vụ chuẩn S3 như Cloudflare R2 (hoặc ổ đĩa local).
-- **Quét hóa đơn**: Claude vision (Anthropic Java SDK) hoặc Gemini trên Vertex AI (Google Gen AI SDK), trả về JSON có cấu trúc.
 
 ```
 backend/    Spring Boot API
@@ -38,7 +37,6 @@ docker compose up -d
 # 2. Backend: http://localhost:8080
 cd backend
 mvn spring-boot:run
-# Bật quét hóa đơn (không bắt buộc): ANTHROPIC_API_KEY=sk-ant-... mvn spring-boot:run
 
 # 3. Frontend: http://localhost:5173
 cd frontend
@@ -68,12 +66,6 @@ cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
 | `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | trống | Object Storage chuẩn S3 ngoài AWS (BizFly, VNG, FPT...). Để trống khi dùng AWS S3 với IAM role |
 | `S3_PATH_STYLE` | `true` | Dùng địa chỉ dạng `endpoint/bucket/key` (chỉ áp dụng khi có `S3_ENDPOINT`) |
 | `PUBLIC_BASE_URL` | `http://localhost:8080` | URL công khai của API (ký link file khi lưu local) |
-| `RECEIPT_PROVIDER` | `anthropic` | AI đọc hóa đơn: `anthropic` hoặc `gemini` |
-| `ANTHROPIC_API_KEY` | trống | Bật quét hóa đơn bằng Claude |
-| `RECEIPT_MODEL` | `claude-opus-5-5` | Model Claude dùng để đọc hóa đơn |
-| `GCP_PROJECT_ID`, `GCP_LOCATION` | trống, `global` | Project Google Cloud cho Gemini trên Vertex AI |
-| `GEMINI_MODEL` | `gemini-3.6-flash` | Model Gemini dùng để đọc hóa đơn |
-| `GOOGLE_APPLICATION_CREDENTIALS` | trống | Đường dẫn file JSON của service account (role Vertex AI User) |
 
 ## API chính
 
@@ -86,7 +78,6 @@ cd frontend && npm run build  # kiểm tra kiểu TypeScript và build
 | GET/POST | `/api/meal-plans/week` | Xem tuần (`?date=`), tạo thực đơn tuần hiện tại (mỗi tuần 1 lần, lần 2 trả 409) |
 | GET | `/api/meal-plans/{date}` · PATCH `/api/meal-plans/items/{id}` | Xem một ngày, sửa gram |
 | GET/POST/PUT/DELETE | `/api/expenses` | Chi tiêu |
-| POST | `/api/expenses/scan-receipt` | Upload ảnh hóa đơn, trả thông tin đọc được |
 | GET/POST/DELETE | `/api/moments` | Ảnh / video 5 giây |
 | GET | `/api/summary/monthly?month=2026-10` | Tổng kết tháng |
 

@@ -21,13 +21,8 @@ public final class ExpenseDtos {
             @NotNull Expense.Category category,
             @Size(max = 150) String merchant,
             @Size(max = 500) String note,
-            @Size(max = 100) List<@Valid LineItem> items,
-            @Size(max = 255) String receiptKey) {}
+            @Size(max = 100) List<@Valid LineItem> items) {}
 
     public record ExpenseView(long id, LocalDate spentOn, BigDecimal amount, Expense.Category category,
                               String merchant, String note, List<LineItem> items, String receiptUrl) {}
-
-    public record ScanResult(boolean enabled, String receiptKey, String receiptUrl, String merchant,
-                             LocalDate date, BigDecimal total, Expense.Category category,
-                             List<LineItem> items, String message) {}
 }

@@ -54,11 +54,7 @@ export interface Expense {
 }
 export interface ExpenseInput {
   spentOn: string; amount: number; category: ExpenseCategory
-  merchant?: string; note?: string; items?: LineItem[]; receiptKey?: string | null
-}
-export interface ScanResult {
-  enabled: boolean; receiptKey: string; receiptUrl: string
-  merchant?: string; date?: string; total?: number; category?: ExpenseCategory; items: LineItem[]; message?: string
+  merchant?: string; note?: string; items?: LineItem[]
 }
 
 export interface Moment {

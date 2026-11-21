@@ -9,7 +9,7 @@ import { HabitChecklist } from '../components/habits'
 import { TodayTasksCard } from '../components/tasks'
 import { TodayNotesCard } from '../components/notes'
 import { TodayVocabCard } from '../components/vocab'
-import { dayPortions } from '../lib/portions'
+import { dailyPortions } from '../lib/portions'
 import type { HabitKind } from '../api/types'
 import ExpenseSheet from './expenses/ExpenseSheet'
 import CameraSheet from './moments/CameraSheet'
@@ -99,17 +99,15 @@ export default function Today() {
                 <MacroBar label="Béo" value={total?.fat ?? 0} target={macros.fat} color="var(--fat)" />
               </div>
             </div>
+            <div className="macro-pills" style={{ marginTop: 12 }} title="Lượng nên ăn mỗi ngày, cố định theo mục tiêu macro">
+              {dailyPortions(macros).map((p) => (
+                <span key={p.key}>{p.emoji} {p.label} <b className="tnum">{num(p.grams)}g</b></span>
+              ))}
+            </div>
             {plan.data ? (
-              <>
-              <div className="macro-pills" style={{ marginTop: 12 }}>
-                {dayPortions(plan.data).filter((p) => p.grams > 0).map((p) => (
-                  <span key={p.key}>{p.emoji} {p.label} <b className="tnum">{num(p.grams)}g</b></span>
-                ))}
-              </div>
               <div className="small muted" style={{ marginTop: 8 }}>
                 {plan.data.meals.map((m) => `${MEALS[m.meal].emoji} ${m.items.length ? m.items.map((i) => i.foodName).join(', ') : 'bỏ bữa'}`).join(' · ')}
               </div>
-              </>
             ) : (
               <Link to="/thuc-don" className="btn secondary block" style={{ marginTop: 14 }}>Tạo thực đơn tuần</Link>
             )}

@@ -7,6 +7,7 @@ import type { Meal, MealView, Plan, PlanItem, ShoppingItem, Staple, WeekMenu } f
 import { useProfile, useWeekMenu } from '../lib/queries'
 import { MEALS, WEEKDAYS_SHORT, addDays, isoDate, num, prettyDate, shortDate, weekStartOf } from '../lib/format'
 import { Empty, ErrorText, Loading, MacroBar, Spinner } from '../components/ui'
+import { dayPortions } from '../lib/portions'
 
 /** "150 g · 3 quả" cho món có đơn vị, còn lại chỉ số gram */
 const unitText = (grams: number, unitG: number | null, unitName: string | null) =>
@@ -157,6 +158,8 @@ function DayPlan({ plan, weekStart, staples }: { plan: Plan; weekStart: string; 
         </div>
       </div>
 
+      <Portions plan={plan} />
+
       <div className="grid grid-md-3" style={{ marginTop: 12 }}>
         {plan.meals.map((m) => (
           <MealCard key={m.meal} meal={m} staples={staples} busy={busy}
@@ -172,6 +175,35 @@ function DayPlan({ plan, weekStart, staples }: { plan: Plan; weekStart: string; 
         Sửa số gram rồi chạm ra ngoài để tính lại. Bấm ✕ để bỏ món, “Thêm món” để thêm nguyên liệu vào bữa.
       </p>
     </>
+  )
+}
+
+function Portions({ plan }: { plan: Plan }) {
+  const portions = dayPortions(plan)
+  return (
+    <div className="card" style={{ marginTop: 12 }}>
+      <div className="card-head"><h2>Nên ăn trong ngày</h2><span className="small muted">đã luộc chín</span></div>
+      <div className="portions">
+        {portions.map((p) => (
+          <div key={p.key} className={`portion ${p.grams === 0 ? 'empty' : ''}`}>
+            <div className="portion-head">
+              <span className="portion-emoji" aria-hidden>{p.emoji}</span>
+              <span className="small muted">{p.label}</span>
+            </div>
+            <div className="portion-value tnum">{p.grams > 0 ? <>{num(p.grams)}<span className="small"> g</span></> : '—'}</div>
+            {p.raw ? <div className="small muted tnum">≈ {num(p.raw.grams)} g {p.raw.label}</div>
+              : p.key === 'VEGGIE' && p.foods.length > 0 && <div className="small muted">{p.foods.join(', ').toLowerCase()}</div>}
+            {p.grams > 0 && (
+              <div className="portion-meals small tnum">
+                {plan.meals.filter((m) => p.perMeal[m.meal]).map((m) => (
+                  <span key={m.meal} title={MEALS[m.meal].label}>{MEALS[m.meal].emoji} {num(p.perMeal[m.meal])}g</span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 

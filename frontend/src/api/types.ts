@@ -32,7 +32,7 @@ export interface Food {
 
 export interface MacroTotals { kcal: number; protein: number; carbs: number; fat: number }
 export interface PlanItem {
-  id: number; foodId: number; foodName: string; category: FoodCategory; grams: number
+  id: number; foodId: number; foodName: string; stapleKey: string | null; category: FoodCategory; grams: number
   unitG: number | null; unitName: string | null; macros: MacroTotals
 }
 export interface MealView { meal: Meal; target: MacroTotals; total: MacroTotals; items: PlanItem[] }

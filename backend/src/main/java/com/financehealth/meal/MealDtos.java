@@ -24,7 +24,8 @@ public final class MealDtos {
         }
     }
 
-    public record ItemView(long id, long foodId, String foodName, Food.Category category, int grams,
+    /** stapleKey: EGG, CHICKEN, RICE... của nguyên liệu cố định, null nếu là món khác */
+    public record ItemView(long id, long foodId, String foodName, String stapleKey, Food.Category category, int grams,
                            Integer unitG, String unitName, Macros macros) {}
 
     public record MealView(Food.Meal meal, Macros target, Macros total, List<ItemView> items) {}

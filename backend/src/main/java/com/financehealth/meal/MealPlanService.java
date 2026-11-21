@@ -166,7 +166,7 @@ public class MealPlanService {
             List<ItemView> items = e.getValue().stream()
                     .sorted(Comparator.comparingInt(MealPlanItem::getPosition))
                     .map(i -> new ItemView(i.getId(), i.getFood().getId(), i.getFood().getName(),
-                            i.getFood().getCategory(), i.getGrams(), i.getFood().getUnitG(), i.getFood().getUnitName(),
+                            i.getFood().getStapleKey(), i.getFood().getCategory(), i.getGrams(), i.getFood().getUnitG(), i.getFood().getUnitName(),
                             new Macros(i.getKcal(), i.getProtein(), i.getCarbs(), i.getFat())))
                     .toList();
             Macros total = items.stream().map(ItemView::macros).reduce(Macros.ZERO, Macros::plus);

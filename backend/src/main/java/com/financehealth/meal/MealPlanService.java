@@ -92,6 +92,7 @@ public class MealPlanService {
                         e.getKey().getUnitG(), e.getKey().getUnitName()))
                 .toList();
         List<Food> stapleFoods = foods.findByOwnerIdIsNullAndStapleKeyIsNotNull().stream()
+                .filter(f -> WeeklyMenuTemplate.KEYS.contains(f.getStapleKey()))
                 .sorted(Comparator.comparingInt(f -> WeeklyMenuTemplate.KEYS.indexOf(f.getStapleKey())))
                 .toList();
         List<StapleView> staples = stapleFoods.stream()
@@ -127,7 +128,7 @@ public class MealPlanService {
         MealPlan plan = plans.findByUserIdAndPlanDate(userId, date)
                 .orElseThrow(() -> ApiException.notFound("thực đơn ngày này"));
         Food food = foods.findById(foodId)
-                .filter(f -> f.getOwnerId() == null && f.getStapleKey() != null)
+                .filter(f -> f.getOwnerId() == null && WeeklyMenuTemplate.KEYS.contains(f.getStapleKey()))
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Chỉ thêm được nguyên liệu trong thực đơn tuần"));
         boolean exists = plan.getItems().stream()
                 .anyMatch(i -> i.getMeal() == meal && i.getFood().getId().equals(food.getId()));

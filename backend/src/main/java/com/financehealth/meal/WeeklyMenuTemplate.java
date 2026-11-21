@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Xếp 8 nguyên liệu luộc cố định vào 3 bữa. Ngày chẵn/lẻ đổi cà rốt với bí đỏ,
- * xúc xích và táo để cả tuần không lặp y hệt.
+ * Xếp 7 nguyên liệu luộc cố định vào 3 bữa. Ngày chẵn/lẻ đổi cà rốt với bí đỏ
+ * để cả tuần không lặp y hệt. Xúc xích đã bỏ khỏi thực đơn (2026-11-21), món vẫn
+ * còn trong bảng foods để thực đơn cũ hiển thị được.
  */
 final class WeeklyMenuTemplate {
 
-    static final List<String> KEYS = List.of("EGG", "CHICKEN", "RICE", "SAUSAGE", "CARROT", "PUMPKIN", "APPLE", "BREAD");
+    static final List<String> KEYS = List.of("EGG", "CHICKEN", "RICE", "CARROT", "PUMPKIN", "APPLE", "BREAD");
 
     private WeeklyMenuTemplate() {}
 
@@ -21,11 +22,9 @@ final class WeeklyMenuTemplate {
     static List<MealPlanner.Selection> forDay(int dayIndex, Map<String, Food> staples) {
         boolean even = dayIndex % 2 == 0;
         List<MealPlanner.Selection> out = new ArrayList<>();
-        add(out, staples, Meal.BREAKFAST, "BREAD", "EGG", even ? "APPLE" : "SAUSAGE");
+        add(out, staples, Meal.BREAKFAST, "BREAD", "EGG", "APPLE");
         add(out, staples, Meal.LUNCH, "RICE", "CHICKEN", even ? "CARROT" : "PUMPKIN");
-        // Đồ luộc ít béo: xúc xích mỗi ngày một bữa để bù chất béo và calo
-        if (even) add(out, staples, Meal.DINNER, "RICE", "CHICKEN", "PUMPKIN", "SAUSAGE");
-        else add(out, staples, Meal.DINNER, "RICE", "CHICKEN", "CARROT", "APPLE");
+        add(out, staples, Meal.DINNER, "RICE", "CHICKEN", even ? "PUMPKIN" : "CARROT");
         return out;
     }
 

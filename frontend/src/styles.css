@@ -749,7 +749,6 @@ a.btn[aria-disabled="true"] { pointer-events: none; }
 /* Khẩu phần gà / cơm / rau trong ngày */
 .portions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .portion { background: var(--surface-2); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.portion.empty { opacity: .55; }
 .portion-head { display: flex; align-items: center; gap: 6px; }
 .portion-emoji { font-size: 18px; line-height: 1; }
 .portion-value { font-size: 24px; font-weight: 700; line-height: 1.2; margin-top: 4px; }

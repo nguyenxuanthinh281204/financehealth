@@ -7,7 +7,7 @@ import type { Meal, MealView, Plan, PlanItem, ShoppingItem, Staple, WeekMenu } f
 import { useProfile, useWeekMenu } from '../lib/queries'
 import { MEALS, WEEKDAYS_SHORT, addDays, isoDate, num, prettyDate, shortDate, weekStartOf } from '../lib/format'
 import { Empty, ErrorText, Loading, MacroBar, Spinner } from '../components/ui'
-import { dayPortions } from '../lib/portions'
+import { dailyPortions } from '../lib/portions'
 
 /** "150 g · 3 quả" cho món có đơn vị, còn lại chỉ số gram */
 const unitText = (grams: number, unitG: number | null, unitName: string | null) =>
@@ -53,6 +53,8 @@ export default function MealPlanner() {
         <button className="icon-btn" onClick={() => goWeek(1)} disabled={weekStart >= thisWeek} aria-label="Tuần sau"><ChevronRight size={18} /></button>
       </div>
 
+      <Portions macros={profile.data.macros} />
+
       {week.isLoading || !week.data ? <Loading /> : !week.data.created ? (
         <CreateWeek week={week.data} />
       ) : (
@@ -94,7 +96,7 @@ function CreateWeek({ week }: { week: WeekMenu }) {
     <div className="card">
       <Empty emoji="🥚" title={week.canCreate ? 'Tuần này chưa có thực đơn' : 'Tuần này không có thực đơn'}>
         {week.canCreate
-          ? 'Hệ thống chia 8 nguyên liệu dưới đây vào 3 bữa cho từng ngày, đủ calo và đạm theo chỉ số cơ thể. Mỗi tuần chỉ tạo một lần.'
+          ? 'Hệ thống chia 7 nguyên liệu dưới đây vào 3 bữa cho từng ngày, đủ calo và đạm theo chỉ số cơ thể. Mỗi tuần chỉ tạo một lần.'
           : 'Chỉ tạo được thực đơn cho tuần hiện tại.'}
       </Empty>
       <div className="chips" style={{ justifyContent: 'center', margin: '4px 0 16px' }}>
@@ -158,8 +160,6 @@ function DayPlan({ plan, weekStart, staples }: { plan: Plan; weekStart: string; 
         </div>
       </div>
 
-      <Portions plan={plan} />
-
       <div className="grid grid-md-3" style={{ marginTop: 12 }}>
         {plan.meals.map((m) => (
           <MealCard key={m.meal} meal={m} staples={staples} busy={busy}
@@ -178,31 +178,30 @@ function DayPlan({ plan, weekStart, staples }: { plan: Plan; weekStart: string; 
   )
 }
 
-function Portions({ plan }: { plan: Plan }) {
-  const portions = dayPortions(plan)
+function Portions({ macros }: { macros: { protein: number; carbs: number } }) {
   return (
     <div className="card" style={{ marginTop: 12 }}>
-      <div className="card-head"><h2>Nên ăn trong ngày</h2><span className="small muted">đã luộc chín</span></div>
+      <div className="card-head"><h2>Mỗi ngày nên ăn</h2><span className="small muted">đã luộc chín</span></div>
       <div className="portions">
-        {portions.map((p) => (
-          <div key={p.key} className={`portion ${p.grams === 0 ? 'empty' : ''}`}>
+        {dailyPortions(macros).map((p) => (
+          <div key={p.key} className="portion">
             <div className="portion-head">
               <span className="portion-emoji" aria-hidden>{p.emoji}</span>
               <span className="small muted">{p.label}</span>
             </div>
-            <div className="portion-value tnum">{p.grams > 0 ? <>{num(p.grams)}<span className="small"> g</span></> : '—'}</div>
-            {p.raw ? <div className="small muted tnum">≈ {num(p.raw.grams)} g {p.raw.label}</div>
-              : p.key === 'VEGGIE' && p.foods.length > 0 && <div className="small muted">{p.foods.join(', ').toLowerCase()}</div>}
-            {p.grams > 0 && (
-              <div className="portion-meals small tnum">
-                {plan.meals.filter((m) => p.perMeal[m.meal]).map((m) => (
-                  <span key={m.meal} title={MEALS[m.meal].label}>{MEALS[m.meal].emoji} {num(p.perMeal[m.meal])}g</span>
-                ))}
-              </div>
-            )}
+            <div className="portion-value tnum">{num(p.grams)}<span className="small"> g</span></div>
+            <div className="small muted tnum">{p.raw ? `≈ ${num(p.raw.grams)} g ${p.raw.label}` : p.note}</div>
+            <div className="portion-meals small tnum">
+              <span title="Bữa trưa">☀️ {num(p.lunch)}g</span>
+              <span title="Bữa tối">🌙 {num(p.dinner)}g</span>
+            </div>
           </div>
         ))}
       </div>
+      <p className="small muted" style={{ marginTop: 10 }}>
+        Cố định theo mục tiêu {num(macros.protein)} g đạm, {num(macros.carbs)} g tinh bột mỗi ngày, không đổi theo thực đơn.
+        Ức gà lo khoảng 3/4 lượng đạm, cơm khoảng 3/5 lượng tinh bột, phần còn lại từ trứng, bánh mì, táo.
+      </p>
     </div>
   )
 }

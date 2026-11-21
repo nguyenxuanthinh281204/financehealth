@@ -1,6 +1,6 @@
 export type Sex = 'MALE' | 'FEMALE'
 export type ActivityLevel = 'SEDENTARY' | 'LIGHT' | 'MODERATE' | 'ACTIVE' | 'VERY_ACTIVE'
-export type Goal = 'LOSE' | 'MAINTAIN' | 'GAIN'
+export type Goal = 'LOSE' | 'RECOMP' | 'MAINTAIN' | 'GAIN'
 export type Meal = 'BREAKFAST' | 'LUNCH' | 'DINNER'
 export type FoodCategory = 'PROTEIN' | 'CARB' | 'FAT' | 'VEGGIE' | 'FRUIT' | 'DAIRY' | 'OTHER'
 export type ExpenseCategory =

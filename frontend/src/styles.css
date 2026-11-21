@@ -198,6 +198,8 @@ textarea.input { min-height: 80px; resize: vertical; }
 
 .segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 14px; }
 .segmented button { border: none; background: transparent; padding: 9px 6px; border-radius: 10px; font-weight: 500; font-size: 14px; cursor: pointer; color: var(--muted); }
+.segmented.two-rows { grid-auto-flow: row; grid-template-columns: 1fr 1fr; }
+@media (min-width: 640px) { .segmented.two-rows { grid-auto-flow: column; grid-template-columns: none; } }
 .segmented button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }

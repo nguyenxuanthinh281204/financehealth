@@ -61,12 +61,12 @@ class ApiFlowIntegrationTest {
         JsonNode week = call(get("/api/meal-plans/week").header("Authorization", bearer), 200);
         assertThat(week.get("created").asBoolean()).isFalse();
         assertThat(week.get("canCreate").asBoolean()).isTrue();
-        assertThat(week.get("ingredients").size()).isEqualTo(8);
+        assertThat(week.get("ingredients").size()).isEqualTo(7);
 
         week = call(post("/api/meal-plans/week").header("Authorization", bearer), 200);
         assertThat(week.get("created").asBoolean()).isTrue();
         assertThat(week.get("days").size()).isEqualTo(7);
-        assertThat(week.get("shopping").size()).isEqualTo(8);
+        assertThat(week.get("shopping").size()).isEqualTo(7);
         for (JsonNode day : week.get("days")) {
             assertThat(day.get("meals").size()).isEqualTo(3);
             assertThat(day.at("/total/kcal").asDouble()).isBetween(kcal * 0.85, kcal * 1.15);

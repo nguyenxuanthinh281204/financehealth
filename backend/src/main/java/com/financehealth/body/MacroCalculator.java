@@ -13,6 +13,8 @@ import java.time.Period;
 @Component
 public class MacroCalculator {
 
+    static final double RECOMP_MIN_DEFICIT = 300, RECOMP_MAX_DEFICIT = 500;
+
     public record Input(Sex sex, LocalDate birthDate, double heightCm, double weightKg,
                         ActivityLevel activity, Goal goal) {}
 
@@ -23,8 +25,11 @@ public class MacroCalculator {
         int age = Period.between(in.birthDate(), today).getYears();
         double bmrRaw = 10 * in.weightKg() + 6.25 * in.heightCm() - 5 * age + (in.sex() == Sex.MALE ? 5 : -161);
         double tdee = bmrRaw * in.activity().factor;
+        double adjusted = tdee * (1 + in.goal().calorieAdjust);
+        // Recomp chỉ thâm hụt nhẹ: giữ trong khoảng 300-500 kcal dưới TDEE
+        if (in.goal() == Goal.RECOMP) adjusted = tdee - Math.min(RECOMP_MAX_DEFICIT, Math.max(RECOMP_MIN_DEFICIT, tdee - adjusted));
         // Không cắt calo xuống dưới BMR để tránh thiếu chất
-        double kcal = Math.max(tdee * (1 + in.goal().calorieAdjust), Math.min(bmrRaw, tdee));
+        double kcal = Math.max(adjusted, Math.min(bmrRaw, tdee));
 
         double protein = in.weightKg() * in.goal().proteinPerKg;
         double fat = Math.max(kcal * 0.25 / 9, in.weightKg() * 0.6);

@@ -137,7 +137,7 @@ function ProfileForm({ initial, onDone }: { initial?: Profile; onDone: () => voi
         </div>
       </div>
       <div className="field"><span>Mục tiêu</span>
-        <Segmented value={goal} onChange={setGoal} options={(Object.keys(GOALS) as Goal[]).map((g) => ({ value: g, label: GOALS[g].label }))} />
+        <Segmented className="two-rows" value={goal} onChange={setGoal} options={(Object.keys(GOALS) as Goal[]).map((g) => ({ value: g, label: GOALS[g].label }))} />
         <small className="muted">{GOALS[goal].hint}</small>
       </div>
       <ErrorText error={save.error} />

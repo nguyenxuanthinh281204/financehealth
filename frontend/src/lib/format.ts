@@ -90,6 +90,7 @@ export const ACTIVITY: Record<ActivityLevel, { label: string; hint: string }> = 
 
 export const GOALS: Record<Goal, { label: string; hint: string }> = {
   LOSE: { label: 'Giảm mỡ', hint: 'Thâm hụt ~20% calo' },
+  RECOMP: { label: 'Giảm mỡ tăng cơ', hint: 'Thâm hụt nhẹ 300–500 kcal, đạm cao 2,2 g/kg. Cần tập tạ đều' },
   MAINTAIN: { label: 'Giữ cân', hint: 'Ăn bằng mức tiêu hao' },
   GAIN: { label: 'Tăng cơ', hint: 'Dư ~10% calo' },
 }

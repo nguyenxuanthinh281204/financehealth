@@ -22,6 +22,8 @@ public final class BodyEnums {
 
     public enum Goal {
         LOSE(-0.20, 2.2),
+        /** Giảm mỡ tăng cơ (recomp): thâm hụt nhẹ 300-500 kcal, đạm cao để giữ và xây cơ */
+        RECOMP(-0.15, 2.2),
         MAINTAIN(0.0, 1.8),
         GAIN(0.10, 2.0);
 

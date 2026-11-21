@@ -50,11 +50,11 @@ export function ErrorText({ error }: { error: unknown }) {
   return <div className="error">{msg}</div>
 }
 
-export function Segmented<T extends string>({ value, options, onChange }: {
-  value: T; options: { value: T; label: string }[]; onChange: (v: T) => void
+export function Segmented<T extends string>({ value, options, onChange, className }: {
+  value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; className?: string
 }) {
   return (
-    <div className="segmented" role="radiogroup">
+    <div className={`segmented ${className ?? ''}`} role="radiogroup">
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value}
           className={value === o.value ? 'on' : ''} onClick={() => onChange(o.value)}>

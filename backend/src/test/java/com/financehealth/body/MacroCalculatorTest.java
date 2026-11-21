@@ -43,4 +43,26 @@ class MacroCalculatorTest {
                 ActivityLevel.ACTIVE, Goal.GAIN), today);
         assertThat(r.kcal()).isGreaterThan(r.tdee());
     }
+
+    @Test
+    void recompIsMildDeficitWithHighProtein() {
+        var in = new MacroCalculator.Input(Sex.MALE, LocalDate.of(2000, 10, 24), 175, 70, ActivityLevel.MODERATE, Goal.RECOMP);
+        var r = calc.calculate(in, today);
+        // TDEE 2587, thâm hụt 15% = 388 kcal nằm trong 300-500
+        assertThat(r.tdee() - r.kcal()).isBetween(300, 500);
+        assertThat(r.protein()).isEqualTo(154);
+        assertThat(r.protein() * 4 + r.carbs() * 4 + r.fat() * 9).isBetween(r.kcal() - 10, r.kcal() + 10);
+    }
+
+    @Test
+    void recompDeficitIsClamped() {
+        // TDEE cao: 15% sẽ quá 500 kcal, bị giới hạn còn 500
+        var big = calc.calculate(new MacroCalculator.Input(Sex.MALE, LocalDate.of(2000, 1, 1), 190, 100,
+                ActivityLevel.VERY_ACTIVE, Goal.RECOMP), today);
+        assertThat(big.tdee() - big.kcal()).isBetween(499, 501);
+        // TDEE thấp: 15% dưới 300 kcal, nâng lên 300 (nhưng không xuống dưới BMR)
+        var small = calc.calculate(new MacroCalculator.Input(Sex.FEMALE, LocalDate.of(1995, 1, 1), 150, 45,
+                ActivityLevel.LIGHT, Goal.RECOMP), today);
+        assertThat(small.tdee() - small.kcal()).isBetween(299, 301);
+    }
 }

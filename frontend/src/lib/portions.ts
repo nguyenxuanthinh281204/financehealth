@@ -2,7 +2,7 @@
  * Khẩu phần gà / cơm / rau cố định mỗi ngày, tính thẳng từ mục tiêu macro trong
  * chỉ số cơ thể, không phụ thuộc thực đơn hay các món đã sửa trong ngày.
  *
- * - Ức gà luộc lo ~75% lượng đạm (phần còn lại từ trứng, xúc xích, bánh mì, cơm)
+ * - Ức gà luộc lo ~75% lượng đạm (phần còn lại từ trứng, bánh mì, cơm)
  * - Cơm trắng lo ~60% lượng tinh bột (phần còn lại từ bánh mì, táo, rau củ)
  * - Rau củ luộc (cà rốt, bí đỏ) cố định 300 g/ngày
  * Dinh dưỡng trên 100 g chín lấy theo bảng foods: ức gà 31 g đạm, cơm 28,2 g tinh bột.

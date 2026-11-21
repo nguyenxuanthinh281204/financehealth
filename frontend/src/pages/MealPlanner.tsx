@@ -96,7 +96,7 @@ function CreateWeek({ week }: { week: WeekMenu }) {
     <div className="card">
       <Empty emoji="🥚" title={week.canCreate ? 'Tuần này chưa có thực đơn' : 'Tuần này không có thực đơn'}>
         {week.canCreate
-          ? 'Hệ thống chia 8 nguyên liệu dưới đây vào 3 bữa cho từng ngày, đủ calo và đạm theo chỉ số cơ thể. Mỗi tuần chỉ tạo một lần.'
+          ? 'Hệ thống chia 7 nguyên liệu dưới đây vào 3 bữa cho từng ngày, đủ calo và đạm theo chỉ số cơ thể. Mỗi tuần chỉ tạo một lần.'
           : 'Chỉ tạo được thực đơn cho tuần hiện tại.'}
       </Empty>
       <div className="chips" style={{ justifyContent: 'center', margin: '4px 0 16px' }}>
@@ -200,7 +200,7 @@ function Portions({ macros }: { macros: { protein: number; carbs: number } }) {
       </div>
       <p className="small muted" style={{ marginTop: 10 }}>
         Cố định theo mục tiêu {num(macros.protein)} g đạm, {num(macros.carbs)} g tinh bột mỗi ngày, không đổi theo thực đơn.
-        Ức gà lo khoảng 3/4 lượng đạm, cơm khoảng 3/5 lượng tinh bột, phần còn lại từ trứng, bánh mì, xúc xích, táo.
+        Ức gà lo khoảng 3/4 lượng đạm, cơm khoảng 3/5 lượng tinh bột, phần còn lại từ trứng, bánh mì, táo.
       </p>
     </div>
   )

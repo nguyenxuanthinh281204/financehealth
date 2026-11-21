@@ -93,7 +93,6 @@ class MealPlannerTest {
                 "EGG", food("Trứng gà luộc", Category.PROTEIN, 155, 13, 1.1, 11, 100, 50, 200, EnumSet.allOf(Meal.class)).withUnit(50, "quả"),
                 "CHICKEN", chicken,
                 "RICE", food("Cơm", Category.CARB, 130, 2.7, 28.2, 0.3, 150, 50, 600, EnumSet.of(Meal.LUNCH, Meal.DINNER)),
-                "SAUSAGE", food("Xúc xích luộc", Category.PROTEIN, 250, 12, 6, 20, 50, 25, 100, EnumSet.allOf(Meal.class)),
                 "CARROT", food("Cà rốt luộc", Category.VEGGIE, 35, 0.8, 8.2, 0.2, 100, 50, 250, EnumSet.of(Meal.LUNCH, Meal.DINNER)),
                 "PUMPKIN", food("Bí đỏ luộc", Category.VEGGIE, 20, 0.7, 4.9, 0.1, 150, 50, 300, EnumSet.of(Meal.LUNCH, Meal.DINNER)),
                 "APPLE", food("Táo", Category.FRUIT, 52, 0.3, 13.8, 0.2, 150, 0, 300, EnumSet.allOf(Meal.class)),
@@ -110,6 +109,7 @@ class MealPlannerTest {
             assertThat(kcal).isBetween(2770 * 0.9, 2770 * 1.1);
             assertThat(protein).isBetween(130 * 0.85, 130 * 1.2);
             assertThat(items.stream().map(MealPlanner.PlannedItem::meal).distinct()).hasSize(3);
+            assertThat(items).noneMatch(i -> i.food().getName().contains("Xúc xích"));
         }
     }
 }
